@@ -1,0 +1,6 @@
+Primary (Desaturated Yellow): #E8D619 — evokes KI Katapult yellow but softer and darker for app UIs.
+Secondary (Deep Teal): #1EA897 — derived from Tron Blue with added green bias.
+Accent (Red-Orange Wrecking Ball): #FF4A3A — slightly warmer and more energetic than #FE3832.
+Surface / Background: #F9FAF9 (light neutral for contrast).
+On-Primary Text: #0A0A0A (near-black).
+Error / Danger: #D32F2F (Material Red 700 approx).
