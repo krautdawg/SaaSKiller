@@ -105,7 +105,11 @@ async function callPerplexityAPI(query) {
 }
 
 Rules:
-- monthly_cost must be a number (average monthly price in USD)
+- monthly_cost: The average PER-SEAT monthly price in USD for the most common/popular pricing tier
+  - Look up the actual current pricing for this tool
+  - Use the middle tier if there are multiple (e.g., "Professional" or "Business" tier)
+  - This should be the per-user/per-seat cost, NOT the total team cost
+  - Example: Slack Pro is $8.75/user/month, not $87.50 for 10 users
 - type must be either "core" or "bloat"
   - Mark as "core" if essential (20% users need)
   - Mark as "bloat" if rarely used (80% don't need)
@@ -116,7 +120,7 @@ Rules:
 - estimated_hours: Realistic development time for a solo developer at $150/hour
   - Consider frontend, backend, testing, and deployment
   - Be realistic about technical complexity
-- Include 5-10 features`
+- Include 10-12 features total (mix of core and bloat)`
           }
         ],
         temperature: 0.1
