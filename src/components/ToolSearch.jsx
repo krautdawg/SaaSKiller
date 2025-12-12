@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useAuditStore from '../store/auditStore';
 import { api } from '../services/api';
-import pb from '../lib/pocketbase';
 
 const ToolSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,10 +99,10 @@ const ToolSearch = () => {
         features: featuresArray
       };
 
-      // Save to database
-      const newTool = await pb.collection('tools').create(toolData);
+      // Use API to create tool (this handles formatting for us)
+      const newTool = await api.createTool(toolData);
 
-      console.log('[ToolSearch] Manual entry saved:', newTool.id);
+      console.log('[ToolSearch] Manual entry created:', newTool.id);
 
       // Update store and transition to audit screen
       setSelectedTool(newTool);
