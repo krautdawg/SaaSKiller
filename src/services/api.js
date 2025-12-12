@@ -15,7 +15,13 @@ const withTimeout = (promise, timeoutMs = 10000) => {
 const validateToolResponse = (tool) => {
   if (!tool) return false;
   if (!tool.name || typeof tool.name !== 'string') return false;
-  if (tool.monthly_cost === undefined || typeof tool.monthly_cost !== 'number') return false;
+
+  // Handle monthly_cost as either string (from PostgreSQL NUMERIC) or number
+  let monthly_cost = tool.monthly_cost;
+  if (typeof monthly_cost === 'string') {
+    monthly_cost = parseFloat(monthly_cost);
+  }
+  if (monthly_cost === undefined || isNaN(monthly_cost)) return false;
 
   // Handle features as either array or JSONB string
   let features = tool.features;
