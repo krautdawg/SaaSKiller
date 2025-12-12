@@ -60,7 +60,8 @@ const useAuditStore = create((set, get) => ({
   calculateBuildCost: () => {
     const { selectedTool, checkedFeatures, customFeatures } = get();
     const HOURLY_RATE = 150;
-    const BASE_COST = 2800; // Auth, DB, Hosting setup
+    const BASE_COST = 700; // Auth, DB, Hosting setup (1/4 of 2800)
+    const VIBE_CODING_MULTIPLIER = 0.25; // AI-assisted coding is 4x faster
 
     // Calculate feature costs based on estimated hours and complexity
     let minFeatureCost = 0;
@@ -72,30 +73,31 @@ const useAuditStore = create((set, get) => ({
         .forEach(feature => {
           // Use estimated_hours from Perplexity if available
           if (feature.estimated_hours) {
-            const cost = feature.estimated_hours * HOURLY_RATE;
+            const vibeHours = feature.estimated_hours * VIBE_CODING_MULTIPLIER;
+            const cost = vibeHours * HOURLY_RATE;
             minFeatureCost += cost * 0.8; // -20% for efficiency
             maxFeatureCost += cost * 1.2; // +20% for unknowns
           } else {
-            // Fallback to complexity-based estimates
+            // Fallback to complexity-based estimates (also 1/4 time)
             const complexityRanges = {
-              simple: { min: 2, max: 4 },
-              medium: { min: 8, max: 16 },
-              complex: { min: 40, max: 80 }
+              simple: { min: 0.5, max: 1 },    // was 2-4
+              medium: { min: 2, max: 4 },      // was 8-16
+              complex: { min: 10, max: 20 }    // was 40-80
             };
 
-            const range = complexityRanges[feature.complexity] || { min: 4, max: 12 };
+            const range = complexityRanges[feature.complexity] || { min: 1, max: 3 };
             minFeatureCost += range.min * HOURLY_RATE;
             maxFeatureCost += range.max * HOURLY_RATE;
           }
         });
     }
 
-    // Custom features: estimate $500-$1000 each
-    const customMin = customFeatures.length * 500;
-    const customMax = customFeatures.length * 1000;
+    // Custom features: estimate $125-$250 each (1/4 of 500-1000)
+    const customMin = customFeatures.length * 125;
+    const customMax = customFeatures.length * 250;
 
     // Calculate totals
-    const totalMin = Math.max(3000, BASE_COST + minFeatureCost + customMin);
+    const totalMin = Math.max(750, BASE_COST + minFeatureCost + customMin);
     const totalMax = BASE_COST + maxFeatureCost + customMax;
 
     return {
