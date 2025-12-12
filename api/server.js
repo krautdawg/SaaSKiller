@@ -95,7 +95,7 @@ async function callPerplexityAPI(query) {
             content: `Analyze the SaaS tool "${query}" and return this exact JSON structure:
 {
   "name": "Tool Name",
-  "monthly_cost": 99.99,
+  "monthly_cost": "99.99",
   "description": "Brief description",
   "features": [
     {"name": "Feature 1", "type": "core", "complexity": "simple", "estimated_hours": 3},
@@ -111,8 +111,8 @@ Rules:
   - This should be the per-user/per-seat cost, NOT the total team cost
   - Example: Slack Pro is $8.75/user/month, not $87.50 for 10 users
 - type must be either "core" or "bloat"
-  - Mark as "core" if essential (20% users need)
-  - Mark as "bloat" if rarely used (80% don't need)
+  - Mark as "core" if essential (min. 80% users need)
+  - Mark as "bloat" if rarely used (min. 80% don't need)
 - complexity must be "simple", "medium", or "complex"
   - simple: Basic UI/UX features, simple CRUD operations (2-4 hours)
   - medium: Moderate logic, integrations, real-time features (8-16 hours)
