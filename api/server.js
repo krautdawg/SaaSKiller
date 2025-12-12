@@ -98,17 +98,24 @@ async function callPerplexityAPI(query) {
   "monthly_cost": 99.99,
   "description": "Brief description",
   "features": [
-    {"name": "Feature 1", "type": "core"},
-    {"name": "Feature 2", "type": "bloat"},
-    {"name": "Feature 3", "type": "core"}
+    {"name": "Feature 1", "type": "core", "complexity": "simple", "estimated_hours": 3},
+    {"name": "Feature 2", "type": "bloat", "complexity": "medium", "estimated_hours": 12},
+    {"name": "Feature 3", "type": "core", "complexity": "complex", "estimated_hours": 60}
   ]
 }
 
 Rules:
 - monthly_cost must be a number (average monthly price in USD)
 - type must be either "core" or "bloat"
-- Mark as "core" if essential (20% users need)
-- Mark as "bloat" if rarely used (80% don't need)
+  - Mark as "core" if essential (20% users need)
+  - Mark as "bloat" if rarely used (80% don't need)
+- complexity must be "simple", "medium", or "complex"
+  - simple: Basic UI/UX features, simple CRUD operations (2-4 hours)
+  - medium: Moderate logic, integrations, real-time features (8-16 hours)
+  - complex: Advanced infrastructure, video/voice, AI, complex workflows (40-80 hours)
+- estimated_hours: Realistic development time for a solo developer at $150/hour
+  - Consider frontend, backend, testing, and deployment
+  - Be realistic about technical complexity
 - Include 5-10 features`
           }
         ],

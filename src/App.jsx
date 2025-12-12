@@ -55,7 +55,7 @@ const App = () => {
              </div>
              <h2 className="text-4xl font-bold mb-4 font-heading">Great Choice.</h2>
              <p className="text-xl text-gray-600 mb-8 font-sans">
-               You could save <span className="font-bold text-green-600 font-mono">${(calculateBleed() - calculateBuildCost()).toLocaleString()}</span> over the next 3 years.
+               You could save <span className="font-bold text-green-600 font-mono">${(calculateBleed() - ((calculateBuildCost().min + calculateBuildCost().max) / 2)).toLocaleString()}</span> over the next 3 years.
              </p>
              <div className="p-6 rounded-xl border bg-white border-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
                <h3 className="text-xl font-bold mb-4 font-heading">Where should we send your official quote?</h3>

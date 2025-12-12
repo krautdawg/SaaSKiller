@@ -59,17 +59,50 @@ const useAuditStore = create((set, get) => ({
 
   calculateBuildCost: () => {
     const { selectedTool, checkedFeatures, customFeatures } = get();
-    const base = 2800;
-    
-    const coreFeaturesCount = selectedTool?.features 
-      ? selectedTool.features.filter(f => checkedFeatures[f.name]).length 
-      : 0;
-      
-    const customCost = customFeatures.length * 500;
-    const featureCost = coreFeaturesCount * 100;
-    const total = base + featureCost + customCost;
-    
-    return Math.max(3000, total);
+    const HOURLY_RATE = 150;
+    const BASE_COST = 2800; // Auth, DB, Hosting setup
+
+    // Calculate feature costs based on estimated hours and complexity
+    let minFeatureCost = 0;
+    let maxFeatureCost = 0;
+
+    if (selectedTool?.features) {
+      selectedTool.features
+        .filter(f => checkedFeatures[f.name])
+        .forEach(feature => {
+          // Use estimated_hours from Perplexity if available
+          if (feature.estimated_hours) {
+            const cost = feature.estimated_hours * HOURLY_RATE;
+            minFeatureCost += cost * 0.8; // -20% for efficiency
+            maxFeatureCost += cost * 1.2; // +20% for unknowns
+          } else {
+            // Fallback to complexity-based estimates
+            const complexityRanges = {
+              simple: { min: 2, max: 4 },
+              medium: { min: 8, max: 16 },
+              complex: { min: 40, max: 80 }
+            };
+
+            const range = complexityRanges[feature.complexity] || { min: 4, max: 12 };
+            minFeatureCost += range.min * HOURLY_RATE;
+            maxFeatureCost += range.max * HOURLY_RATE;
+          }
+        });
+    }
+
+    // Custom features: estimate $500-$1000 each
+    const customMin = customFeatures.length * 500;
+    const customMax = customFeatures.length * 1000;
+
+    // Calculate totals
+    const totalMin = Math.max(3000, BASE_COST + minFeatureCost + customMin);
+    const totalMax = BASE_COST + maxFeatureCost + customMax;
+
+    return {
+      min: Math.round(totalMin),
+      max: Math.round(totalMax),
+      hourly_rate: HOURLY_RATE
+    };
   }
 }));
 
