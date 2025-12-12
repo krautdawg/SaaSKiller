@@ -12,13 +12,8 @@ const QuoteGenerator = () => {
        <div className="absolute top-0 left-0 w-full h-2 bg-brand-secondary"></div>
        <h3 className="text-lg font-bold mb-2 uppercase tracking-widest text-teal-800 font-heading">SaaSKiller Solution</h3>
        <div className="flex justify-between items-end mb-2">
-          <div className="flex flex-col">
-            <div className="text-3xl font-bold text-brand-text font-heading">
-               ${costEstimate.min.toLocaleString()} – ${costEstimate.max.toLocaleString()}
-            </div>
-            <div className="text-xs text-gray-500 font-sans mt-1">
-              @ ${costEstimate.hourly_rate}/hour development rate
-            </div>
+          <div className="text-3xl font-bold text-brand-text font-heading">
+             ${costEstimate.min.toLocaleString()} – ${costEstimate.max.toLocaleString()}
           </div>
           <div className="text-sm font-bold mb-2 bg-yellow-300 px-2 py-1 rounded text-yellow-900 font-sans">One-Time Fee</div>
        </div>

@@ -92,9 +92,12 @@ const useAuditStore = create((set, get) => ({
         });
     }
 
-    // Custom features: estimate $125-$250 each (1/4 of 500-1000)
-    const customMin = customFeatures.length * 125;
-    const customMax = customFeatures.length * 250;
+    // Custom features: treat as "medium" complexity by default (same heuristic as regular features)
+    // Medium complexity: 2-4 hours * 0.25 vibe multiplier * $150/hour
+    const customFeatureHoursMin = 2 * VIBE_CODING_MULTIPLIER; // 0.5 hours
+    const customFeatureHoursMax = 4 * VIBE_CODING_MULTIPLIER; // 1 hour
+    const customMin = customFeatures.length * (customFeatureHoursMin * HOURLY_RATE * 0.8); // with -20% efficiency
+    const customMax = customFeatures.length * (customFeatureHoursMax * HOURLY_RATE * 1.2); // with +20% unknowns
 
     // Calculate totals
     const totalMin = Math.max(750, BASE_COST + minFeatureCost + customMin);
