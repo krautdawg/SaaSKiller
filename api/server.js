@@ -743,19 +743,20 @@ app.post('/api/calculate-cost', async (req, res) => {
     const teamSizeNum = Math.max(1, parseInt(team_size));
 
     // Calculate costs based on pricing model
+    // Ensure all values are numbers (database might return strings)
     let monthlyCost = 0;
     let yearlyCost = 0;
 
     if (tier.price_model === 'per_seat') {
-      monthlyCost = (tier.price_monthly || 0) * teamSizeNum;
-      yearlyCost = (tier.price_yearly || 0) * teamSizeNum;
+      monthlyCost = (Number(tier.price_monthly) || 0) * teamSizeNum;
+      yearlyCost = (Number(tier.price_yearly) || 0) * teamSizeNum;
     } else if (tier.price_model === 'flat') {
-      monthlyCost = tier.price_monthly || 0;
-      yearlyCost = tier.price_yearly || 0;
+      monthlyCost = Number(tier.price_monthly) || 0;
+      yearlyCost = Number(tier.price_yearly) || 0;
     } else if (tier.price_model === 'usage_based') {
       // For usage-based, return base price (actual usage would be calculated separately)
-      monthlyCost = tier.price_monthly || 0;
-      yearlyCost = tier.price_yearly || 0;
+      monthlyCost = Number(tier.price_monthly) || 0;
+      yearlyCost = Number(tier.price_yearly) || 0;
     }
 
     // Calculate savings percentage

@@ -93,9 +93,9 @@ const App = () => {
             <Link to="/browse" className="font-medium text-gray-600 hover:text-brand-secondary">Browse Tools</Link>
             <a href="#" className="font-medium text-gray-600 hover:text-brand-secondary">Pricing</a>
           </nav>
-          <button className="bg-brand-accent text-brand-surface px-4 py-2 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 text-sm font-sans">
+          <Link to="/" className="bg-brand-accent text-brand-surface px-4 py-2 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 text-sm font-sans">
               Get Started
-          </button>
+          </Link>
         </header>
 
         {/* Routes */}

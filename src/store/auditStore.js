@@ -3,13 +3,14 @@ import { create } from 'zustand';
 const useAuditStore = create((set, get) => ({
   currentStep: 'search', // 'search', 'audit', 'results'
   selectedTool: null,
+  selectedTier: null, // Currently selected subscription tier
   checkedFeatures: {}, // Map<featureName, boolean>
   userCount: 5,
   customFeatures: [], // Array<{name: string, complexity: string, estimated_hours: number, isAnalyzing?: boolean}>
-  
+
   // Actions
   setStep: (step) => set({ currentStep: step }),
-  
+
   setSelectedTool: (tool) => {
     // Initialize checkedFeatures: core=true, bloat=true (user unchecks what they don't use)
     const initialChecks = {};
@@ -18,8 +19,22 @@ const useAuditStore = create((set, get) => ({
         initialChecks[f.name] = true;
       });
     }
-    set({ selectedTool: tool, checkedFeatures: initialChecks });
+
+    // Auto-select middle tier by default (or first if less than 2 tiers)
+    let defaultTier = null;
+    if (tool && tool.subscription_tiers && Array.isArray(tool.subscription_tiers)) {
+      const tiers = tool.subscription_tiers;
+      if (tiers.length > 0) {
+        // Select middle tier (e.g., for 4 tiers: tier[1] which is second tier)
+        const middleIndex = Math.floor(tiers.length / 2);
+        defaultTier = tiers[middleIndex] || tiers[0];
+      }
+    }
+
+    set({ selectedTool: tool, checkedFeatures: initialChecks, selectedTier: defaultTier });
   },
+
+  setSelectedTier: (tier) => set({ selectedTier: tier }),
   
   toggleFeature: (featureName) => set((state) => ({
     checkedFeatures: {
@@ -92,12 +107,20 @@ const useAuditStore = create((set, get) => ({
   },
 
   calculateBleed: () => {
-    const { selectedTool, userCount } = get();
+    const { selectedTool, userCount, selectedTier } = get();
     if (!selectedTool) return 0;
-    // Bleed = Monthly Cost * Users * 36 Months
-    // Handle potential string vs number issues from DB
-    const cost = Number(selectedTool.monthly_cost) || 0;
-    return cost * userCount * 36;
+
+    // Use selected tier pricing if available, otherwise fall back to tool's monthly_cost
+    let monthlyCostPerUser = 0;
+    if (selectedTier && selectedTier.price_per_user) {
+      monthlyCostPerUser = Number(selectedTier.price_per_user) || 0;
+    } else {
+      // Fallback to legacy monthly_cost field
+      monthlyCostPerUser = Number(selectedTool.monthly_cost) || 0;
+    }
+
+    // Bleed = Monthly Cost Per User * Users * 36 Months
+    return monthlyCostPerUser * userCount * 36;
   },
 
   calculateBuildCost: () => {
