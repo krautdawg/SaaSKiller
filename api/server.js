@@ -26,7 +26,37 @@ async function initializeDatabase() {
   try {
     console.log('[DB] Initializing database schema...');
 
-    // Create tools table
+    // Create categories table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) UNIQUE NOT NULL,
+        slug VARCHAR(100) UNIQUE NOT NULL,
+        icon VARCHAR(50),
+        display_order INTEGER DEFAULT 0
+      )
+    `);
+
+    // Seed categories if empty
+    const categoriesCount = await client.query('SELECT COUNT(*) FROM categories');
+    if (parseInt(categoriesCount.rows[0].count) === 0) {
+      await client.query(`
+        INSERT INTO categories (name, slug, icon, display_order) VALUES
+          ('Communication', 'communication', 'message-circle', 1),
+          ('Productivity', 'productivity', 'check-square', 2),
+          ('Development', 'development', 'code', 3),
+          ('Design', 'design', 'palette', 4),
+          ('Marketing', 'marketing', 'megaphone', 5),
+          ('Sales & CRM', 'sales-crm', 'users', 6),
+          ('Analytics', 'analytics', 'bar-chart', 7),
+          ('Project Management', 'project-management', 'trello', 8),
+          ('Finance', 'finance', 'dollar-sign', 9),
+          ('HR & Recruiting', 'hr-recruiting', 'briefcase', 10)
+      `);
+      console.log('[DB] ✅ Seeded categories');
+    }
+
+    // Create tools table (keeping legacy name for compatibility)
     await client.query(`
       CREATE TABLE IF NOT EXISTS tools (
         id SERIAL PRIMARY KEY,
@@ -40,6 +70,94 @@ async function initializeDatabase() {
       )
     `);
 
+    // Add new columns to tools table if they don't exist
+    await client.query(`
+      DO $$
+      BEGIN
+        -- Add category column
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='category') THEN
+          ALTER TABLE tools ADD COLUMN category VARCHAR(100);
+        END IF;
+
+        -- Add logo_url column
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='logo_url') THEN
+          ALTER TABLE tools ADD COLUMN logo_url VARCHAR(500);
+        END IF;
+
+        -- Add short_description column
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='short_description') THEN
+          ALTER TABLE tools ADD COLUMN short_description TEXT;
+        END IF;
+
+        -- Add website column
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='website') THEN
+          ALTER TABLE tools ADD COLUMN website VARCHAR(500);
+        END IF;
+
+        -- Add is_published column
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='is_published') THEN
+          ALTER TABLE tools ADD COLUMN is_published BOOLEAN DEFAULT false;
+        END IF;
+
+        -- Add popularity_score column
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='popularity_score') THEN
+          ALTER TABLE tools ADD COLUMN popularity_score INTEGER DEFAULT 0;
+        END IF;
+
+        -- Add core_features column (new flexible feature array)
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='core_features') THEN
+          ALTER TABLE tools ADD COLUMN core_features JSONB DEFAULT '[]'::jsonb;
+        END IF;
+
+        -- Add bloaty_features column
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='bloaty_features') THEN
+          ALTER TABLE tools ADD COLUMN bloaty_features JSONB DEFAULT '[]'::jsonb;
+        END IF;
+      END $$;
+    `);
+
+    // Create subscription_tiers table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS subscription_tiers (
+        id SERIAL PRIMARY KEY,
+        tool_id INTEGER REFERENCES tools(id) ON DELETE CASCADE,
+        tier_name VARCHAR(100) NOT NULL,
+        tier_order INTEGER NOT NULL DEFAULT 0,
+        price_monthly NUMERIC(10,2),
+        price_yearly NUMERIC(10,2),
+        price_model VARCHAR(50) DEFAULT 'per_seat',
+        features_included JSONB DEFAULT '[]'::jsonb,
+        user_limit INTEGER,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create indexes
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_tools_name ON tools USING gin(to_tsvector('english', name))
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_tools_category ON tools(category)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_tools_is_published ON tools(is_published)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_subscription_tiers_tool_id ON subscription_tiers(tool_id)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_subscription_tiers_tier_order ON subscription_tiers(tier_order)
+    `);
+
     // Create leads table
     await client.query(`
       CREATE TABLE IF NOT EXISTS leads (
@@ -49,11 +167,6 @@ async function initializeDatabase() {
         bleed_amount NUMERIC NOT NULL,
         created_at TIMESTAMP DEFAULT NOW()
       )
-    `);
-
-    // Create index for faster search
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_tools_name ON tools USING gin(to_tsvector('english', name))
     `);
 
     console.log('[DB] ✅ Database schema initialized successfully');
@@ -95,32 +208,119 @@ async function callPerplexityAPI(query) {
             content: `Analyze the SaaS tool "${query}" and return this exact JSON structure:
 {
   "name": "Tool Name",
-  "monthly_cost": "99.99",
-  "description": "Brief description",
-  "features": [
-    {"name": "Feature 1", "type": "core", "complexity": "simple", "estimated_hours": 3},
-    {"name": "Feature 2", "type": "bloat", "complexity": "medium", "estimated_hours": 12},
-    {"name": "Feature 3", "type": "core", "complexity": "complex", "estimated_hours": 60}
+  "website": "https://example.com",
+  "category": "communication",
+  "short_description": "Brief one-sentence description of the tool",
+  "logo_url": "https://logo.clearbit.com/example.com",
+  "core_features": [
+    {
+      "id": 1,
+      "name": "User Management",
+      "description": "Create, edit, and manage user accounts",
+      "icon": "users",
+      "priority": 1
+    },
+    {
+      "id": 2,
+      "name": "Team Collaboration",
+      "description": "Real-time collaboration features",
+      "icon": "users",
+      "priority": 2
+    }
+  ],
+  "bloaty_features": [
+    {
+      "id": 1,
+      "name": "Advanced Analytics Dashboard",
+      "description": "Complex reporting rarely used by 80%+ of users",
+      "icon": "bar-chart",
+      "priority": 1
+    },
+    {
+      "id": 2,
+      "name": "White Label Branding",
+      "description": "Customize platform with your brand",
+      "icon": "palette",
+      "priority": 2
+    }
+  ],
+  "subscription_tiers": [
+    {
+      "tier_name": "Free",
+      "tier_order": 0,
+      "price_monthly": 0,
+      "price_yearly": 0,
+      "price_model": "flat",
+      "user_limit": 10,
+      "notes": "Limited features for small teams"
+    },
+    {
+      "tier_name": "Pro",
+      "tier_order": 1,
+      "price_monthly": 15.00,
+      "price_yearly": 150.00,
+      "price_model": "per_seat",
+      "user_limit": null,
+      "notes": "Most popular tier for growing teams"
+    }
   ]
 }
 
-Rules:
-- monthly_cost: The average PER-SEAT monthly price in USD for the most common/popular pricing tier
-  - Look up the actual current pricing for this tool
-  - Use the middle tier if there are multiple (e.g., "Professional" or "Business" tier)
-  - This should be the per-user/per-seat cost, NOT the total team cost
-  - Example: Slack Pro is $8.75/user/month, not $87.50 for 10 users
-- type must be either "core" or "bloat"
-  - Mark as "core" if essential (min. 80% users need)
-  - Mark as "bloat" if rarely used (min. 80% don't need)
-- complexity must be "simple", "medium", or "complex"
-  - simple: Basic UI/UX features, simple CRUD operations (2-4 hours)
-  - medium: Moderate logic, integrations, real-time features (8-16 hours)
-  - complex: Advanced infrastructure, video/voice, AI, complex workflows (40-80 hours)
-- estimated_hours: Realistic development time for a solo developer at $150/hour
-  - Consider frontend, backend, testing, and deployment
-  - Be realistic about technical complexity
-- Include 10-12 features total (mix of core and bloat)`
+CRITICAL RULES:
+1. **Core Features (GET ALL - NO LIMIT):**
+   - List EVERY essential feature used by 80%+ of customers
+   - Include all basic functionality that defines the tool
+   - Examples: "Send Messages", "File Sharing", "User Authentication", "Search"
+   - Don't artificially limit - some tools have 8 core features, others have 40+
+   - Assign priority 1-100 (lower = more important/commonly used)
+   - Priority helps UI show "top 20" but store ALL
+
+2. **Bloaty Features (GET ALL - NO LIMIT):**
+   - List EVERY advanced feature rarely used by 80%+ of customers
+   - Enterprise-only or niche functionality
+   - Examples: "Advanced Security Controls", "Custom Integrations", "White Labeling"
+   - Some tools have 3 bloaty features, others have 20+
+   - Assign priority 1-100 (lower = more important among bloat features)
+   - Priority helps UI show "top 10" but store ALL
+
+3. **Feature Descriptions:**
+   - Keep under 100 characters
+   - Focus on "what" not "why"
+   - No marketing fluff
+
+4. **Feature Icons:**
+   - Use Lucide React icon names (lowercase, hyphenated)
+   - Examples: "users", "message-circle", "file", "lock", "settings", "zap"
+   - Choose icons that visually represent the feature
+
+5. **Feature Priority (NEW):**
+   - Assign priority number 1-100 to each feature
+   - Priority 1 = most important/commonly used
+   - Priority 100 = least important/rarely used
+   - For core features: rank by usage frequency (e.g., "Send Message" = 1, "Export Data" = 40)
+   - For bloaty features: rank by how bloated (e.g., "Basic Reports" = 1, "AI Predictions" = 10)
+   - This allows UI to show "top 20 core" and "top 10 bloat" while storing all
+
+6. **Subscription Tiers (2-5 tiers):**
+   - Look up actual current pricing from the vendor's website
+   - tier_order: 0 (cheapest) to 4 (most expensive)
+   - price_model: "per_seat" (price per user), "flat" (fixed price), or "usage_based"
+   - price_monthly: Monthly price in USD (0 for free tier)
+   - price_yearly: Annual price in USD (typically 10-20% discount from monthly × 12)
+   - user_limit: Max users (null if unlimited)
+   - Include Free/Trial tier if available
+   - Include Enterprise tier (can set price_monthly as null if "Contact Sales")
+
+7. **Category:**
+   - Choose ONE from: communication, productivity, development, design, marketing,
+     sales-crm, analytics, project-management, finance, hr-recruiting
+
+8. **Data Accuracy:**
+   - Use current 2025 pricing data
+   - If pricing unavailable, estimate reasonably based on similar tools
+   - Be honest if you're unsure (note in "notes" field)
+
+Return ONLY valid JSON. No markdown, no explanations, just the raw JSON object.`
           }
         ],
         temperature: 0.1
@@ -141,14 +341,56 @@ Rules:
       cleanedContent = cleanedContent.replace(/```json?\n?/g, '').replace(/```\n?$/g, '');
     }
 
-    const toolData = JSON.parse(cleanedContent);
+    // Log raw response for debugging
+    console.log('[Perplexity] Raw response preview:', cleanedContent.substring(0, 500) + '...');
 
-    // Validate structure
-    if (!toolData.name || !toolData.monthly_cost || !Array.isArray(toolData.features)) {
-      throw new Error('Invalid response structure from Perplexity');
+    let toolData;
+    try {
+      toolData = JSON.parse(cleanedContent);
+    } catch (parseError) {
+      console.error('[Perplexity] JSON parse failed. Full response:', cleanedContent);
+      throw new Error(`Failed to parse JSON response: ${parseError.message}`);
     }
 
-    console.log(`[Perplexity] ✅ Successfully analyzed ${toolData.name}`);
+    // Log parsed structure
+    console.log('[Perplexity] Parsed structure:', {
+      hasName: !!toolData.name,
+      hasCoreFeatures: !!toolData.core_features,
+      coreIsArray: Array.isArray(toolData.core_features),
+      coreCount: toolData.core_features?.length,
+      hasBloatyFeatures: !!toolData.bloaty_features,
+      bloatyIsArray: Array.isArray(toolData.bloaty_features),
+      bloatyCount: toolData.bloaty_features?.length,
+      hasTiers: !!toolData.subscription_tiers,
+      tiersIsArray: Array.isArray(toolData.subscription_tiers),
+      tiersCount: toolData.subscription_tiers?.length
+    });
+
+    // Validate new structure
+    if (!toolData.name) {
+      throw new Error('Missing required field: name');
+    }
+    if (!toolData.core_features || !Array.isArray(toolData.core_features)) {
+      throw new Error('core_features must be an array');
+    }
+    if (!toolData.bloaty_features || !Array.isArray(toolData.bloaty_features)) {
+      throw new Error('bloaty_features must be an array');
+    }
+    if (toolData.core_features.length === 0) {
+      throw new Error('Tool must have at least 1 core feature');
+    }
+    if (!toolData.subscription_tiers || !Array.isArray(toolData.subscription_tiers)) {
+      throw new Error('subscription_tiers must be an array');
+    }
+    if (toolData.subscription_tiers.length < 2) {
+      throw new Error('Expected at least 2 subscription tiers');
+    }
+
+    // Sort features by priority (lowest priority number = most important)
+    toolData.core_features.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+    toolData.bloaty_features.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+
+    console.log(`[Perplexity] ✅ Successfully analyzed ${toolData.name} (${toolData.core_features.length} core, ${toolData.bloaty_features.length} bloat, ${toolData.subscription_tiers.length} tiers)`);
     return toolData;
 
   } catch (error) {
@@ -198,26 +440,94 @@ app.get('/api/tools/search', async (req, res) => {
 
     const toolData = await callPerplexityAPI(query);
 
-    // 4. Insert into database
-    const slug = toolData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    // 4. Insert into database with transaction
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    const insertResult = await pool.query(
-      `INSERT INTO tools (name, slug, monthly_cost, features, description)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [
-        toolData.name,
-        slug,
-        toolData.monthly_cost,
-        JSON.stringify(toolData.features),
-        toolData.description || ''
-      ]
-    );
+      const slug = toolData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-    console.log(`[API] ✅ Saved to database: ${toolData.name}`);
+      // Insert tool
+      const toolResult = await client.query(
+        `INSERT INTO tools
+         (name, slug, website, category, logo_url, short_description,
+          core_features, bloaty_features, is_published, monthly_cost, features, description)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING *`,
+        [
+          toolData.name,
+          slug,
+          toolData.website || '',
+          toolData.category || 'productivity',
+          toolData.logo_url || `https://logo.clearbit.com/${slug}.com`,
+          toolData.short_description || '',
+          JSON.stringify(toolData.core_features),
+          JSON.stringify(toolData.bloaty_features),
+          true,
+          // Legacy fields for backward compatibility
+          toolData.subscription_tiers.find(t => t.tier_order === 1)?.price_monthly || 0,
+          JSON.stringify([]), // Empty legacy features array
+          toolData.short_description || ''
+        ]
+      );
 
-    // 5. Return the newly created tool
-    res.json(insertResult.rows[0]);
+      const toolId = toolResult.rows[0].id;
+
+      // Insert subscription tiers
+      for (const tier of toolData.subscription_tiers) {
+        await client.query(
+          `INSERT INTO subscription_tiers
+           (tool_id, tier_name, tier_order, price_monthly, price_yearly,
+            price_model, user_limit, notes)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            toolId,
+            tier.tier_name,
+            tier.tier_order,
+            tier.price_monthly,
+            tier.price_yearly,
+            tier.price_model || 'per_seat',
+            tier.user_limit,
+            tier.notes || ''
+          ]
+        );
+      }
+
+      await client.query('COMMIT');
+
+      // Get complete tool with tiers for response
+      const completeToolResult = await pool.query(
+        `SELECT t.*,
+                json_agg(
+                  json_build_object(
+                    'id', st.id,
+                    'tier_name', st.tier_name,
+                    'tier_order', st.tier_order,
+                    'price_monthly', st.price_monthly,
+                    'price_yearly', st.price_yearly,
+                    'price_model', st.price_model,
+                    'user_limit', st.user_limit,
+                    'notes', st.notes
+                  ) ORDER BY st.tier_order
+                ) as subscription_tiers
+         FROM tools t
+         LEFT JOIN subscription_tiers st ON st.tool_id = t.id
+         WHERE t.id = $1
+         GROUP BY t.id`,
+        [toolId]
+      );
+
+      console.log(`[API] ✅ Saved to database: ${toolData.name}`);
+
+      // 5. Return the newly created tool with tiers
+      res.json(completeToolResult.rows[0]);
+
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
 
   } catch (error) {
     console.error('[API] ❌ Error in /api/tools/search:', error);
@@ -275,6 +585,213 @@ app.get('/api/tools', async (req, res) => {
   } catch (error) {
     console.error('[API] ❌ Error fetching tools:', error);
     res.status(500).json({ error: 'Failed to fetch tools' });
+  }
+});
+
+// GET /api/saas-tools - List all published tools with pagination and filters
+app.get('/api/saas-tools', async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      category,
+      search,
+      sort = 'created_at',
+      order = 'desc'
+    } = req.query;
+
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = parseInt(limit);
+
+    // Build WHERE clause dynamically
+    const conditions = ['is_published = true'];
+    const values = [];
+    let paramIndex = 1;
+
+    if (category) {
+      conditions.push(`category = $${paramIndex}`);
+      values.push(category);
+      paramIndex++;
+    }
+
+    if (search) {
+      conditions.push(`(LOWER(name) LIKE $${paramIndex} OR LOWER(short_description) LIKE $${paramIndex})`);
+      values.push(`%${search.toLowerCase()}%`);
+      paramIndex++;
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // Validate sort and order
+    const validSorts = ['created_at', 'name', 'popularity_score', 'category'];
+    const validOrders = ['asc', 'desc'];
+    const sortColumn = validSorts.includes(sort) ? sort : 'created_at';
+    const sortOrder = validOrders.includes(order.toLowerCase()) ? order.toUpperCase() : 'DESC';
+
+    // Get total count
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM tools ${whereClause}`,
+      values
+    );
+    const totalCount = parseInt(countResult.rows[0].count);
+
+    // Get paginated results with subscription tiers
+    values.push(limitNum, offset);
+    const result = await pool.query(
+      `SELECT t.*,
+              json_agg(
+                json_build_object(
+                  'id', st.id,
+                  'tier_name', st.tier_name,
+                  'tier_order', st.tier_order,
+                  'price_monthly', st.price_monthly,
+                  'price_yearly', st.price_yearly,
+                  'price_model', st.price_model,
+                  'user_limit', st.user_limit,
+                  'notes', st.notes
+                ) ORDER BY st.tier_order
+              ) FILTER (WHERE st.id IS NOT NULL) as subscription_tiers
+       FROM tools t
+       LEFT JOIN subscription_tiers st ON st.tool_id = t.id
+       ${whereClause}
+       GROUP BY t.id
+       ORDER BY t.${sortColumn} ${sortOrder}
+       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+      values
+    );
+
+    res.json({
+      tools: result.rows,
+      pagination: {
+        page: parseInt(page),
+        limit: limitNum,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limitNum)
+      }
+    });
+
+  } catch (error) {
+    console.error('[API] ❌ Error fetching saas-tools:', error);
+    res.status(500).json({ error: 'Failed to fetch tools', message: error.message });
+  }
+});
+
+// GET /api/saas-tools/:id - Get single tool with tiers
+app.get('/api/saas-tools/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT t.*,
+              json_agg(
+                json_build_object(
+                  'id', st.id,
+                  'tier_name', st.tier_name,
+                  'tier_order', st.tier_order,
+                  'price_monthly', st.price_monthly,
+                  'price_yearly', st.price_yearly,
+                  'price_model', st.price_model,
+                  'user_limit', st.user_limit,
+                  'notes', st.notes
+                ) ORDER BY st.tier_order
+              ) FILTER (WHERE st.id IS NOT NULL) as subscription_tiers
+       FROM tools t
+       LEFT JOIN subscription_tiers st ON st.tool_id = t.id
+       WHERE t.id = $1
+       GROUP BY t.id`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Tool not found' });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error('[API] ❌ Error fetching tool:', error);
+    res.status(500).json({ error: 'Failed to fetch tool', message: error.message });
+  }
+});
+
+// POST /api/calculate-cost - Calculate monthly/yearly cost
+app.post('/api/calculate-cost', async (req, res) => {
+  try {
+    const { tool_id, tier_id, team_size = 1, billing_period = 'monthly' } = req.body;
+
+    if (!tool_id || !tier_id) {
+      return res.status(400).json({
+        error: 'Missing required fields: tool_id, tier_id'
+      });
+    }
+
+    // Get tier information
+    const tierResult = await pool.query(
+      `SELECT * FROM subscription_tiers WHERE id = $1 AND tool_id = $2`,
+      [tier_id, tool_id]
+    );
+
+    if (tierResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Tier not found for this tool' });
+    }
+
+    const tier = tierResult.rows[0];
+    const teamSizeNum = Math.max(1, parseInt(team_size));
+
+    // Calculate costs based on pricing model
+    let monthlyCost = 0;
+    let yearlyCost = 0;
+
+    if (tier.price_model === 'per_seat') {
+      monthlyCost = (tier.price_monthly || 0) * teamSizeNum;
+      yearlyCost = (tier.price_yearly || 0) * teamSizeNum;
+    } else if (tier.price_model === 'flat') {
+      monthlyCost = tier.price_monthly || 0;
+      yearlyCost = tier.price_yearly || 0;
+    } else if (tier.price_model === 'usage_based') {
+      // For usage-based, return base price (actual usage would be calculated separately)
+      monthlyCost = tier.price_monthly || 0;
+      yearlyCost = tier.price_yearly || 0;
+    }
+
+    // Calculate savings percentage
+    const yearlyEquivalentMonthly = yearlyCost / 12;
+    const savingsPercent = monthlyCost > 0
+      ? Math.round(((monthlyCost - yearlyEquivalentMonthly) / monthlyCost) * 100)
+      : 0;
+
+    res.json({
+      tier_name: tier.tier_name,
+      price_model: tier.price_model,
+      team_size: teamSizeNum,
+      monthly_cost: parseFloat(monthlyCost.toFixed(2)),
+      yearly_cost: parseFloat(yearlyCost.toFixed(2)),
+      yearly_monthly_equivalent: parseFloat(yearlyEquivalentMonthly.toFixed(2)),
+      savings_percent: Math.max(0, savingsPercent),
+      billing_period
+    });
+
+  } catch (error) {
+    console.error('[API] ❌ Error calculating cost:', error);
+    res.status(500).json({ error: 'Failed to calculate cost', message: error.message });
+  }
+});
+
+// GET /api/categories - List all categories
+app.get('/api/categories', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM categories ORDER BY display_order ASC'
+    );
+
+    res.json({
+      categories: result.rows,
+      count: result.rows.length
+    });
+
+  } catch (error) {
+    console.error('[API] ❌ Error fetching categories:', error);
+    res.status(500).json({ error: 'Failed to fetch categories' });
   }
 });
 
