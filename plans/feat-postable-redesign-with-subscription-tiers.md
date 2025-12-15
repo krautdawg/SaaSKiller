@@ -2,7 +2,11 @@
 
 ## Overview
 
-Transform SaaS Killer's UI to match Postable.com's aesthetic while implementing structured feature display (20 core + 10 bloaty per app), adding 100 pre-populated SaaS tools, and introducing subscription tier selection for accurate monthly spend calculations.
+Transform SaaS Killer's UI with Postable.com-inspired layout and typography improvements while implementing structured feature display (20 core + 10 bloaty per app), adding 100 pre-populated SaaS tools, and introducing subscription tier selection for accurate monthly spend calculations.
+
+**🎨 Design Note:** Keep existing SaaS Killer brand colors (Yellow/Teal/Red). Adopt Postable's layout patterns, whitespace, and typography only.
+
+**🤖 API Note:** Perplexity API prompt must be updated to return 20 core + 10 bloaty features + subscription tiers (see "Perplexity API Prompt Updates" section).
 
 ## Problem Statement / Motivation
 
@@ -30,11 +34,12 @@ Transform SaaS Killer's UI to match Postable.com's aesthetic while implementing 
 
 ### High-Level Changes
 
-**1. UI Redesign (Postable.com Aesthetic)**
-- Adopt Postable color palette: Turquoise (#8AE5DD), Coral Red (#FF5132), Navy Blue (#00265D), Cream (#FFFEFA)
-- Generous whitespace and clean typography
-- Card-based layouts with hover effects
-- Warm, friendly, benefit-focused tone
+**1. UI Redesign (Postable.com Layout & Typography)**
+- **Keep existing SaaS Killer brand colors** (Yellow/Teal/Red palette)
+- Adopt Postable's layout patterns: generous whitespace, clean typography, better line-height
+- Card-based layouts with hover effects (translateY + shadow)
+- Improved spacing system and grid layouts
+- Better typography hierarchy and readability
 
 **2. Structured Feature Display**
 - Enforce exactly 20 core features per app (essential for 80%+ of users)
@@ -266,6 +271,217 @@ export const useSaasToolsStore = create(persist((set, get) => ({
 **`ToolSearch.jsx`** - Update to integrate with pre-populated directory
 **Tailwind Config** - Extend with Postable color palette
 
+### Perplexity API Prompt Updates
+
+**CRITICAL:** The current Perplexity prompt requests 10-12 features total with mixed core/bloat. We need to update it to match the new schema.
+
+#### Current Prompt Issues (server.js:88-124)
+- Requests "10-12 features total" → Should be **exactly 30 features (20 core + 10 bloat)**
+- Returns single `monthly_cost` → Should return **subscription_tiers array**
+- No tier information → Need tier names, pricing, feature mapping
+
+#### Updated Perplexity Prompt
+
+**File:** `/home/tim/Desktop/saaskiller/api/server.js` (lines 88-124)
+
+```javascript
+{
+  role: 'user',
+  content: `Analyze the SaaS tool "${query}" and return this exact JSON structure:
+{
+  "name": "Tool Name",
+  "website": "https://example.com",
+  "category": "communication",
+  "short_description": "Brief one-sentence description of the tool",
+  "logo_url": "https://logo.clearbit.com/example.com",
+  "core_features": [
+    {
+      "id": 1,
+      "name": "User Management",
+      "description": "Create, edit, and manage user accounts",
+      "icon": "users"
+    }
+    // ... exactly 20 core features
+  ],
+  "bloaty_features": [
+    {
+      "id": 1,
+      "name": "Advanced Analytics Dashboard",
+      "description": "Complex reporting rarely used by 80%+ of users",
+      "icon": "bar-chart"
+    }
+    // ... exactly 10 bloaty features
+  ],
+  "subscription_tiers": [
+    {
+      "tier_name": "Free",
+      "tier_order": 0,
+      "price_monthly": 0,
+      "price_yearly": 0,
+      "price_model": "flat",
+      "user_limit": 10,
+      "notes": "Limited features for small teams"
+    },
+    {
+      "tier_name": "Pro",
+      "tier_order": 1,
+      "price_monthly": 15.00,
+      "price_yearly": 150.00,
+      "price_model": "per_seat",
+      "user_limit": null,
+      "notes": "Most popular tier for growing teams"
+    }
+    // ... 2-5 tiers total
+  ]
+}
+
+CRITICAL RULES:
+1. **Core Features (EXACTLY 20):**
+   - Essential features used by 80%+ of customers daily/weekly
+   - Basic functionality that defines the tool's primary purpose
+   - Examples: "Send Messages", "File Sharing", "User Authentication", "Search"
+   - Must be realistic and specific to this tool
+
+2. **Bloaty Features (EXACTLY 10):**
+   - Advanced features rarely used by 80%+ of customers
+   - Enterprise-only or niche functionality
+   - Examples: "Advanced Security Controls", "Custom Integrations", "White Labeling"
+   - Mark features that most small-medium businesses don't need
+
+3. **Feature Descriptions:**
+   - Keep under 100 characters
+   - Focus on "what" not "why"
+   - No marketing fluff
+
+4. **Feature Icons:**
+   - Use Lucide React icon names (lowercase, hyphenated)
+   - Examples: "users", "message-circle", "file", "lock", "settings", "zap"
+   - Choose icons that visually represent the feature
+
+5. **Subscription Tiers (2-5 tiers):**
+   - Look up actual current pricing from the vendor's website
+   - tier_order: 0 (cheapest) to 4 (most expensive)
+   - price_model: "per_seat" (price per user), "flat" (fixed price), or "usage_based"
+   - price_monthly: Monthly price in USD (0 for free tier)
+   - price_yearly: Annual price in USD (typically 10-20% discount from monthly × 12)
+   - user_limit: Max users (null if unlimited)
+   - Include Free/Trial tier if available
+   - Include Enterprise tier (can set price_monthly as null if "Contact Sales")
+
+6. **Category:**
+   - Choose ONE from: communication, productivity, development, design, marketing,
+     sales-crm, analytics, project-management, finance, hr-recruiting
+
+7. **Data Accuracy:**
+   - Use current 2025 pricing data
+   - If pricing unavailable, estimate reasonably based on similar tools
+   - Be honest if you're unsure (note in "notes" field)
+
+Return ONLY valid JSON. No markdown, no explanations, just the raw JSON object.`
+}
+```
+
+#### API Response Handling Updates
+
+**File:** `/home/tim/Desktop/saaskiller/api/server.js` (lines 136-158)
+
+Update the data parsing and storage logic:
+
+```javascript
+// Parse AI response
+const toolData = JSON.parse(content);
+
+// Validate feature counts
+if (!toolData.core_features || toolData.core_features.length !== 20) {
+  throw new Error(`Expected 20 core features, got ${toolData.core_features?.length || 0}`);
+}
+if (!toolData.bloaty_features || toolData.bloaty_features.length !== 10) {
+  throw new Error(`Expected 10 bloaty features, got ${toolData.bloaty_features?.length || 0}`);
+}
+if (!toolData.subscription_tiers || toolData.subscription_tiers.length < 2) {
+  throw new Error('Expected at least 2 subscription tiers');
+}
+
+// Store in database with new schema
+const client = await pool.connect();
+try {
+  await client.query('BEGIN');
+
+  // Insert tool
+  const toolResult = await client.query(
+    `INSERT INTO saas_tools
+     (name, website, category, logo_url, short_description, core_features, bloaty_features, is_published)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+     RETURNING id`,
+    [
+      toolData.name,
+      toolData.website,
+      toolData.category,
+      toolData.logo_url,
+      toolData.short_description,
+      JSON.stringify(toolData.core_features),
+      JSON.stringify(toolData.bloaty_features)
+    ]
+  );
+
+  const toolId = toolResult.rows[0].id;
+
+  // Insert subscription tiers
+  for (const tier of toolData.subscription_tiers) {
+    await client.query(
+      `INSERT INTO subscription_tiers
+       (tool_id, tier_name, tier_order, price_monthly, price_yearly, price_model, user_limit, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        toolId,
+        tier.tier_name,
+        tier.tier_order,
+        tier.price_monthly,
+        tier.price_yearly,
+        tier.price_model,
+        tier.user_limit,
+        tier.notes
+      ]
+    );
+  }
+
+  await client.query('COMMIT');
+
+  // Return complete tool with tiers
+  return {
+    ...toolData,
+    id: toolId
+  };
+
+} catch (error) {
+  await client.query('ROLLBACK');
+  throw error;
+} finally {
+  client.release();
+}
+```
+
+#### Testing the Updated Prompt
+
+**Manual Test Script:**
+```bash
+# Test with a well-known SaaS tool
+curl -X GET "http://localhost:3000/api/tools/search?q=Slack"
+
+# Verify response has:
+# - 20 core_features
+# - 10 bloaty_features
+# - 2+ subscription_tiers with pricing
+```
+
+**Expected Output Validation:**
+- ✅ Exactly 20 core features
+- ✅ Exactly 10 bloaty features
+- ✅ Each feature has: id, name, description (< 100 chars), icon
+- ✅ 2-5 subscription tiers
+- ✅ Each tier has: tier_name, tier_order, price_monthly, price_yearly, price_model
+- ✅ Prices match current vendor pricing (spot check)
+
 ### Data Population Strategy
 
 #### Phase 1: Tool Selection (Manual, 2-4 hours)
@@ -347,20 +563,19 @@ node api/seeds/001_seed_saas_tools.js
 ```javascript
 // File: tailwind.config.js
 colors: {
-  // Existing SaaS Killer colors (keep for compatibility)
-  'brand-primary': '#E8D619',
-  'brand-secondary': '#1EA897',
-  'brand-accent': '#FF4A3A',
+  // Existing SaaS Killer brand colors (KEEP THESE)
+  'brand-primary': '#E8D619',    // Desaturated Yellow
+  'brand-secondary': '#1EA897',  // Deep Teal
+  'brand-accent': '#FF4A3A',     // Red-Orange "Wrecking Ball"
+  'brand-surface': '#F9FAF9',    // Background
+  'brand-text': '#0A0A0A',       // Primary text
+  'brand-error': '#D32F2F',      // Error/Danger
+  'brand-success': '#43A047',    // Success/Green
+  'brand-warning': '#FB8C00',    // Warning/Orange
 
-  // New Postable-inspired palette
-  'postable-turquoise': '#8AE5DD',
-  'postable-coral': '#FF5132',
-  'postable-navy': '#00265D',
-  'postable-cream': '#FFFEFA',
-
-  // Semantic colors
-  'feature-core': '#10b981', // green-500
-  'feature-bloat': '#ef4444', // red-500
+  // Semantic colors for features (using brand colors)
+  'feature-core': '#43A047',     // green (brand-success)
+  'feature-bloat': '#FF4A3A',    // red (brand-accent)
 },
 spacing: {
   '18': '4.5rem',
@@ -372,17 +587,26 @@ boxShadow: {
 }
 ```
 
-**Typography:**
-- Headings: DM Sans Bold (already configured)
-- Body: Inter Regular
-- Line height: 1.6 (generous)
-- Letter spacing: Normal to slightly loose
+**Typography (Postable-Inspired Improvements):**
+- Headings: DM Sans Bold (keep existing font)
+- Body: Inter Regular (keep existing font)
+- **Improved Line Heights:**
+  - Headings: 1.2-1.3 (tighter, more impactful)
+  - Body: 1.6-1.7 (generous, like Postable)
+- **Better Font Sizing:**
+  - H1: 3xl-4xl (48-56px desktop)
+  - H2: 2xl-3xl (32-42px)
+  - H3: xl-2xl (24-32px)
+  - Body: base-lg (16-18px)
+- Letter spacing: -0.5px for large headings, normal for body
 
-**Layout Principles:**
-- Max width containers: 1200px
+**Layout Principles (Postable-Inspired):**
+- Max width containers: 1200px (like Postable)
+- **Generous Whitespace:** 80px vertical padding for sections (Postable style)
 - Grid: 12-column on desktop, 4-column on tablet, 1-column on mobile
-- Padding: 8-12rem (32-48px) vertical sections
-- Card spacing: 6 (24px) gap
+- Card spacing: 24px gap
+- Section padding: 80px 40px (much more generous than current)
+- Content breathing room: 48px margins between major sections
 
 #### Responsive Breakpoints
 
@@ -529,17 +753,23 @@ boxShadow: {
 - [ ] Create database migration: `subscription_tiers` table
 - [ ] Create database migration: Update `saas_tools` schema (add columns, constraints)
 - [ ] Create database migration: `categories` reference data
+- [ ] **Update Perplexity API prompt in `server.js`** (lines 88-124) to request 20 core + 10 bloaty features + tiers
+- [ ] **Update API response parsing logic** (lines 136-158) to handle new schema and insert tiers
+- [ ] Add validation for feature counts (20 core, 10 bloaty)
 - [ ] Build API endpoint: `GET /api/saas-tools` (list with pagination)
 - [ ] Build API endpoint: `GET /api/saas-tools/:id` (detail with tiers)
 - [ ] Build API endpoint: `POST /api/calculate-cost`
 - [ ] Build API endpoint: `GET /api/categories`
 - [ ] Write unit tests for cost calculation logic
 - [ ] Create seed script structure: `seeds/001_seed_saas_tools.js`
+- [ ] **Test updated Perplexity prompt** with 2-3 tools (Slack, Notion, Figma)
 
 **Validation:**
 - Run migrations on local dev database
 - Test API endpoints with Postman/curl
 - Verify constraints work (try inserting 21 core features → should fail)
+- **Verify Perplexity returns exactly 20 core + 10 bloaty features**
+- **Verify subscription tiers are created correctly**
 
 ### Phase 2: Data Population
 **Estimated Effort:** 20-40 hours (manual + scripted)
@@ -785,7 +1015,7 @@ saaskiller/
 **Design Approval Needed:**
 - Figma mockup of tool detail page (features + tier selector + cost calculator)
 - Mobile responsive layout wireframe
-- Postable color palette confirmation
+- Typography/spacing improvements review
 
 **Post-MVP Considerations:**
 - Portfolio view (multi-app total cost aggregation)
