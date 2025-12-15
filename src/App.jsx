@@ -7,6 +7,7 @@ import BleedCalculator from './components/BleedCalculator';
 import QuoteGenerator from './components/QuoteGenerator';
 import ToolBrowser from './components/ToolBrowser';
 import ToolDetailView from './components/ToolDetailView';
+import PricingPage from './components/PricingPage';
 import { api } from './services/api';
 
 /**
@@ -97,7 +98,7 @@ const App = () => {
           <nav className="hidden md:flex gap-6 font-sans">
             <Link to="/" onClick={handleResetToSearch} className="font-medium text-gray-600 hover:text-brand-secondary">Audit Tool</Link>
             <Link to="/browse" className="font-medium text-gray-600 hover:text-brand-secondary">Browse Tools</Link>
-            <a href="#" className="font-medium text-gray-600 hover:text-brand-secondary">Pricing</a>
+            <Link to="/pricing" className="font-medium text-gray-600 hover:text-brand-secondary">Pricing</Link>
           </nav>
           <Link to="/" onClick={handleResetToSearch} className="bg-brand-accent text-brand-surface px-4 py-2 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 text-sm font-sans">
               Get Started
@@ -108,6 +109,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/browse" element={<ToolBrowser />} />
+          <Route path="/pricing" element={<PricingPage />} />
           <Route path="/tools/:id" element={<ToolDetailView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
