@@ -66,12 +66,42 @@ const AuditChecklist = () => {
           </form>
           {customFeatures.length > 0 && (
             <div className="mt-4 space-y-2">
-              {customFeatures.map((f, i) => (
-                <div key={i} className="flex justify-between text-sm bg-yellow-50 p-2 rounded text-yellow-800 border border-yellow-200 font-sans">
-                  <span>✨ {f.name}</span>
-                  <span>+${f.price}</span>
-                </div>
-              ))}
+              {customFeatures.map((f, i) => {
+                // Calculate average price for this feature
+                const HOURLY_RATE = 150;
+                const VIBE_MULTIPLIER = 0.25;
+                const vibeHours = (f.estimated_hours || 12) * VIBE_MULTIPLIER;
+                const avgPrice = Math.round(vibeHours * HOURLY_RATE);
+
+                return (
+                  <div
+                    key={i}
+                    className={`flex justify-between items-center text-sm bg-yellow-50 p-2 rounded text-yellow-800 border border-yellow-200 font-sans ${f.isAnalyzing ? 'opacity-60' : ''}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>✨ {f.name}</span>
+                      {f.isAnalyzing && (
+                        <span className="text-xs text-yellow-600 animate-pulse">
+                          Analyzing...
+                        </span>
+                      )}
+                      {f.isFallback && !f.isAnalyzing && (
+                        <span className="text-xs text-yellow-600" title="Used default estimate">
+                          (est.)
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-yellow-600">
+                        {f.complexity || 'medium'}
+                      </span>
+                      <span className="font-bold">
+                        ${avgPrice}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

@@ -207,5 +207,62 @@ export const api = {
       console.error('[API] Error creating tool:', error);
       throw error;
     }
+  },
+
+  /**
+   * Analyze a custom feature using Perplexity AI
+   */
+  analyzeCustomFeature: async (featureName) => {
+    try {
+      if (!featureName || !featureName.trim()) {
+        throw new Error('Feature name is required');
+      }
+
+      console.log('[API] Analyzing custom feature:', featureName);
+
+      const response = await withTimeout(
+        fetch(`${API_URL}/api/analyze-custom-feature`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ feature_name: featureName })
+        }),
+        15000 // 15 second timeout (Perplexity can be slow)
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to analyze feature');
+      }
+
+      const result = await response.json();
+
+      // Backend returns fallback data on error, check for fallback flag
+      if (result.fallback) {
+        console.warn('[API] Using fallback analysis:', result.error_message);
+      } else {
+        console.log('[API] Feature analyzed:', result.complexity, result.estimated_hours + 'h');
+      }
+
+      return {
+        feature_name: result.feature_name,
+        complexity: result.complexity,
+        estimated_hours: result.estimated_hours,
+        isFallback: !!result.fallback
+      };
+
+    } catch (error) {
+      console.error('[API] Error analyzing feature:', error);
+
+      // Client-side fallback if API completely fails
+      return {
+        feature_name: featureName,
+        complexity: 'medium',
+        estimated_hours: 12,
+        isFallback: true,
+        error: error.message
+      };
+    }
   }
 };

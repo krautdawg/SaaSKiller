@@ -278,6 +278,136 @@ app.get('/api/tools', async (req, res) => {
   }
 });
 
+// Custom Feature Analysis - Lightweight Perplexity call for single features
+async function analyzeCustomFeature(featureName) {
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('PERPLEXITY_API_KEY not configured');
+  }
+
+  try {
+    console.log(`[Perplexity] Analyzing custom feature: ${featureName}`);
+
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'sonar-pro',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a software development estimator. Return ONLY valid JSON. No markdown, no explanations.'
+          },
+          {
+            role: 'user',
+            content: `Estimate the development complexity and hours for this custom feature: "${featureName}"
+
+Return this exact JSON structure:
+{
+  "complexity": "simple",
+  "estimated_hours": 3
+}
+
+Rules:
+- complexity must be "simple", "medium", or "complex"
+  - simple: Basic UI/UX features, simple CRUD (2-4 hours)
+  - medium: Moderate logic, integrations, real-time features (8-16 hours)
+  - complex: Advanced infrastructure, AI, video/voice, complex workflows (40-80 hours)
+- estimated_hours: Realistic time for a solo developer at $150/hour
+  - Include frontend, backend, testing, deployment
+  - Consider the feature described in: "${featureName}"
+- Be realistic and err on the side of medium complexity if uncertain`
+          }
+        ],
+        temperature: 0.2
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+
+    // Clean JSON if wrapped in markdown
+    let cleanedContent = content.trim();
+    if (cleanedContent.startsWith('```')) {
+      cleanedContent = cleanedContent.replace(/```json?\n?/g, '').replace(/```\n?$/g, '');
+    }
+
+    const featureData = JSON.parse(cleanedContent);
+
+    // Validate structure
+    if (!featureData.complexity || !featureData.estimated_hours) {
+      throw new Error('Invalid response structure from Perplexity');
+    }
+
+    // Validate complexity values
+    const validComplexities = ['simple', 'medium', 'complex'];
+    if (!validComplexities.includes(featureData.complexity)) {
+      console.warn(`[Perplexity] Invalid complexity "${featureData.complexity}", defaulting to medium`);
+      featureData.complexity = 'medium';
+    }
+
+    // Validate hours is a reasonable number
+    if (typeof featureData.estimated_hours !== 'number' || featureData.estimated_hours < 1 || featureData.estimated_hours > 200) {
+      console.warn(`[Perplexity] Invalid hours ${featureData.estimated_hours}, using default for ${featureData.complexity}`);
+      const defaults = { simple: 3, medium: 12, complex: 60 };
+      featureData.estimated_hours = defaults[featureData.complexity] || 12;
+    }
+
+    console.log(`[Perplexity] ✅ Analyzed: ${featureData.complexity} (${featureData.estimated_hours}h)`);
+    return featureData;
+
+  } catch (error) {
+    console.error('[Perplexity] ❌ Error analyzing custom feature:', error.message);
+    throw error;
+  }
+}
+
+// Analyze custom feature endpoint
+app.post('/api/analyze-custom-feature', async (req, res) => {
+  const { feature_name } = req.body;
+
+  if (!feature_name || typeof feature_name !== 'string' || !feature_name.trim()) {
+    return res.status(400).json({
+      error: 'Missing or invalid feature_name',
+      message: 'feature_name must be a non-empty string'
+    });
+  }
+
+  try {
+    console.log(`[API] Custom feature analysis request: ${feature_name}`);
+
+    const analysis = await analyzeCustomFeature(feature_name);
+
+    res.json({
+      feature_name: feature_name.trim(),
+      complexity: analysis.complexity,
+      estimated_hours: analysis.estimated_hours
+    });
+
+  } catch (error) {
+    console.error('[API] ❌ Error in /api/analyze-custom-feature:', error);
+
+    // Fallback to medium complexity on error
+    console.log('[API] Falling back to medium complexity defaults');
+    res.json({
+      feature_name: feature_name.trim(),
+      complexity: 'medium',
+      estimated_hours: 12,
+      fallback: true,
+      error_message: 'Analysis failed, using default estimate'
+    });
+  }
+});
+
 // Start server
 async function startServer() {
   try {
@@ -293,6 +423,7 @@ async function startServer() {
       console.log(`   GET  /api/health`);
       console.log(`   GET  /api/tools/search?q=<tool_name>`);
       console.log(`   POST /api/leads`);
+      console.log(`   POST /api/analyze-custom-feature`);
       console.log(`   GET  /api/tools\n`);
     });
 

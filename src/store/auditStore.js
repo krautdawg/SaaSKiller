@@ -5,7 +5,7 @@ const useAuditStore = create((set, get) => ({
   selectedTool: null,
   checkedFeatures: {}, // Map<featureName, boolean>
   userCount: 5,
-  customFeatures: [], // Array<{name: string, price: number}>
+  customFeatures: [], // Array<{name: string, complexity: string, estimated_hours: number, isAnalyzing?: boolean}>
   
   // Actions
   setStep: (step) => set({ currentStep: step }),
@@ -29,10 +29,53 @@ const useAuditStore = create((set, get) => ({
   })),
   
   setUserCount: (count) => set({ userCount: count }),
-  
-  addCustomFeature: (featureName) => set((state) => ({
-    customFeatures: [...state.customFeatures, { name: featureName, price: 500 }]
-  })),
+
+  addCustomFeature: async (featureName) => {
+    // Import API service dynamically to avoid circular dependencies
+    const { api } = await import('../services/api');
+
+    // 1. Add placeholder immediately for responsive UI
+    const tempFeature = {
+      name: featureName,
+      complexity: 'medium',
+      estimated_hours: 12,
+      isAnalyzing: true
+    };
+
+    set((state) => ({
+      customFeatures: [...state.customFeatures, tempFeature]
+    }));
+
+    try {
+      // 2. Call Perplexity analysis
+      const analysis = await api.analyzeCustomFeature(featureName);
+
+      // 3. Update with real data
+      set((state) => ({
+        customFeatures: state.customFeatures.map(f =>
+          f.name === featureName && f.isAnalyzing
+            ? {
+                name: analysis.feature_name,
+                complexity: analysis.complexity,
+                estimated_hours: analysis.estimated_hours,
+                isFallback: analysis.isFallback
+              }
+            : f
+        )
+      }));
+    } catch (error) {
+      console.error('Failed to analyze custom feature:', error);
+
+      // Remove analyzing flag, keep fallback data
+      set((state) => ({
+        customFeatures: state.customFeatures.map(f =>
+          f.name === featureName && f.isAnalyzing
+            ? { name: featureName, complexity: 'medium', estimated_hours: 12, isFallback: true }
+            : f
+        )
+      }));
+    }
+  },
 
   // Computed Selectors
   getBloatPercentage: () => {
@@ -92,16 +135,17 @@ const useAuditStore = create((set, get) => ({
         });
     }
 
-    // Custom features: treat as "medium" complexity by default (same heuristic as regular features)
-    // Medium complexity: 2-4 hours * 0.25 vibe multiplier * $150/hour
-    const customFeatureHoursMin = 2 * VIBE_CODING_MULTIPLIER; // 0.5 hours
-    const customFeatureHoursMax = 4 * VIBE_CODING_MULTIPLIER; // 1 hour
-    const customMin = customFeatures.length * (customFeatureHoursMin * HOURLY_RATE * 0.8); // with -20% efficiency
-    const customMax = customFeatures.length * (customFeatureHoursMax * HOURLY_RATE * 1.2); // with +20% unknowns
+    // Custom features: use actual complexity/hours from Perplexity analysis
+    customFeatures.forEach(feature => {
+      const vibeHours = (feature.estimated_hours || 12) * VIBE_CODING_MULTIPLIER;
+      const cost = vibeHours * HOURLY_RATE;
+      minFeatureCost += cost * 0.8; // -20% for efficiency
+      maxFeatureCost += cost * 1.2; // +20% for unknowns
+    });
 
     // Calculate totals
-    const totalMin = Math.max(750, BASE_COST + minFeatureCost + customMin);
-    const totalMax = BASE_COST + maxFeatureCost + customMax;
+    const totalMin = Math.max(750, BASE_COST + minFeatureCost);
+    const totalMax = BASE_COST + maxFeatureCost;
 
     return {
       min: Math.round(totalMin),
