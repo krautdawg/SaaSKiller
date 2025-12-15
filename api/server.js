@@ -466,7 +466,11 @@ app.get('/api/tools/search', async (req, res) => {
           true,
           // Legacy fields for backward compatibility
           toolData.subscription_tiers.find(t => t.tier_order === 1)?.price_monthly || 0,
-          JSON.stringify([]), // Empty legacy features array
+          // Populate legacy features array for backward compatibility with audit tool
+          JSON.stringify([
+            ...toolData.core_features.map(f => ({ name: f.name, type: 'core' })),
+            ...toolData.bloaty_features.map(f => ({ name: f.name, type: 'bloat' }))
+          ]),
           toolData.short_description || ''
         ]
       );

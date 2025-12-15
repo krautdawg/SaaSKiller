@@ -36,12 +36,14 @@ const useSaasToolsStore = create((set, get) => ({
   isLoadingTool: false,
   isLoadingCategories: false,
   isCalculatingCost: false,
+  isAnalyzing: false, // For AI analysis of tools not in database
 
   // Error states
   toolsError: null,
   toolError: null,
   categoriesError: null,
   costError: null,
+  analyzeError: null,
 
   // Actions: Tools List
 
@@ -157,6 +159,35 @@ const useSaasToolsStore = create((set, get) => ({
         categoriesError: error.message,
         isLoadingCategories: false
       });
+    }
+  },
+
+  /**
+   * Analyze a tool using AI (Perplexity)
+   * Triggers when tool is not found in database
+   */
+  analyzeTool: async (toolName) => {
+    set({ isAnalyzing: true, analyzeError: null });
+
+    try {
+      const tool = await saasToolsApi.searchAndAnalyze(toolName);
+
+      // Refresh tools list to include newly analyzed tool
+      await get().fetchTools();
+
+      set({ isAnalyzing: false });
+
+      console.log(`[Store] Tool analyzed and added: ${tool.name}`);
+
+      return tool.id; // Return tool ID for navigation
+
+    } catch (error) {
+      console.error('[Store] Error analyzing tool:', error);
+      set({
+        analyzeError: error.message,
+        isAnalyzing: false
+      });
+      throw error;
     }
   },
 

@@ -200,5 +200,43 @@ export const saasToolsApi = {
       console.error('[SaaS Tools API] Error fetching categories:', error);
       throw error;
     }
+  },
+
+  /**
+   * Search and analyze a tool (triggers Perplexity if not found in database)
+   * Reuses existing /api/tools/search endpoint from audit tool
+   *
+   * @param {string} toolName - Tool name to search and analyze
+   * @returns {Promise<Object>} Tool object with features and subscription tiers
+   */
+  searchAndAnalyze: async (toolName) => {
+    try {
+      console.log('[SaaS Tools API] Analyzing tool:', toolName);
+
+      const response = await withTimeout(
+        fetch(`${API_URL}/api/tools/search?q=${encodeURIComponent(toolName)}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }),
+        20000 // 20 second timeout for Perplexity analysis
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to analyze tool');
+      }
+
+      const tool = await response.json();
+
+      console.log('[SaaS Tools API] Tool analyzed:', tool.name);
+
+      return tool;
+
+    } catch (error) {
+      console.error('[SaaS Tools API] Error analyzing tool:', error);
+      throw error;
+    }
   }
 };
