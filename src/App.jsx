@@ -78,22 +78,28 @@ const HomePage = () => {
 };
 
 const App = () => {
+  const { setStep } = useAuditStore();
+
+  const handleResetToSearch = () => {
+    setStep('search');
+  };
+
   return (
     <BrowserRouter>
       <div className="min-h-screen font-sans bg-brand-surface text-brand-text">
 
         {/* Header */}
         <header className="py-4 px-6 md:px-12 flex justify-between items-center bg-white shadow-sm sticky top-0 z-50">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" onClick={handleResetToSearch} className="flex items-center gap-2">
              <div className="w-8 h-8 rounded-full bg-brand-primary"></div>
              <span className="font-bold text-xl tracking-tight font-heading">SaaSKiller</span>
           </Link>
           <nav className="hidden md:flex gap-6 font-sans">
-            <Link to="/" className="font-medium text-gray-600 hover:text-brand-secondary">Audit Tool</Link>
+            <Link to="/" onClick={handleResetToSearch} className="font-medium text-gray-600 hover:text-brand-secondary">Audit Tool</Link>
             <Link to="/browse" className="font-medium text-gray-600 hover:text-brand-secondary">Browse Tools</Link>
             <a href="#" className="font-medium text-gray-600 hover:text-brand-secondary">Pricing</a>
           </nav>
-          <Link to="/" className="bg-brand-accent text-brand-surface px-4 py-2 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 text-sm font-sans">
+          <Link to="/" onClick={handleResetToSearch} className="bg-brand-accent text-brand-surface px-4 py-2 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 text-sm font-sans">
               Get Started
           </Link>
         </header>
