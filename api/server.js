@@ -421,10 +421,30 @@ app.get('/api/tools/search', async (req, res) => {
     const normalizedQuery = query.toLowerCase().trim();
 
     const searchResult = await pool.query(
-      `SELECT * FROM tools
-       WHERE LOWER(name) LIKE $1
-       OR LOWER(slug) LIKE $1
-       ORDER BY created_at DESC
+      `SELECT t.*,
+              COALESCE(
+                json_agg(
+                  json_build_object(
+                    'id', st.id,
+                    'name', st.tier_name,
+                    'tier_name', st.tier_name,
+                    'tier_order', st.tier_order,
+                    'price_per_user', st.price_monthly,
+                    'price_monthly', st.price_monthly,
+                    'price_yearly', st.price_yearly,
+                    'price_model', st.price_model,
+                    'user_limit', st.user_limit,
+                    'notes', st.notes
+                  ) ORDER BY st.tier_order
+                ) FILTER (WHERE st.id IS NOT NULL),
+                '[]'::json
+              ) as subscription_tiers
+       FROM tools t
+       LEFT JOIN subscription_tiers st ON st.tool_id = t.id
+       WHERE LOWER(t.name) LIKE $1
+       OR LOWER(t.slug) LIKE $1
+       GROUP BY t.id
+       ORDER BY t.created_at DESC
        LIMIT 1`,
       [`%${normalizedQuery}%`]
     );
