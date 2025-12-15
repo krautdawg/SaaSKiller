@@ -6,7 +6,7 @@ Transform SaaS Killer's UI with Postable.com-inspired layout and typography impr
 
 **🎨 Design Note:** Keep existing SaaS Killer brand colors (Yellow/Teal/Red). Adopt Postable's layout patterns, whitespace, and typography only.
 
-**🤖 API Note:** Perplexity API prompt must be updated to return 20 core + 10 bloaty features + subscription tiers (see "Perplexity API Prompt Updates" section).
+**🤖 API Note:** Perplexity API prompt must be updated to return ALL features (no hard limits) with priority scores + subscription tiers. UI displays top 20 core + top 10 bloaty with "Show More" for additional features (see "Perplexity API Prompt Updates" section).
 
 ## Problem Statement / Motivation
 
@@ -41,11 +41,13 @@ Transform SaaS Killer's UI with Postable.com-inspired layout and typography impr
 - Improved spacing system and grid layouts
 - Better typography hierarchy and readability
 
-**2. Structured Feature Display**
-- Enforce exactly 20 core features per app (essential for 80%+ of users)
-- Enforce exactly 10 bloaty features per app (rarely used by 80%+ of users)
+**2. Flexible Feature Collection & Prioritized Display**
+- **Collect ALL features** from each tool (no artificial limits)
+- AI categorizes each feature as core (80%+ use) or bloat (80%+ don't use)
+- AI assigns priority/importance score to rank features
+- **Display top 20 core features** + **top 10 bloaty features** initially
+- **"Show More" button** to expand and reveal remaining features
 - Clear visual separation with badges and sections
-- Feature descriptions in tooltips
 
 **3. Pre-Populated Database**
 - 100 top SaaS tools seeded on deployment
@@ -100,9 +102,7 @@ ALTER TABLE saas_tools
   ADD COLUMN short_description TEXT,
   ADD COLUMN website VARCHAR(500),
   ADD COLUMN is_published BOOLEAN DEFAULT false,
-  ADD COLUMN popularity_score INTEGER DEFAULT 0,
-  ADD CONSTRAINT chk_core_features_count CHECK (jsonb_array_length(core_features) <= 20),
-  ADD CONSTRAINT chk_bloaty_features_count CHECK (jsonb_array_length(bloaty_features) <= 10);
+  ADD COLUMN popularity_score INTEGER DEFAULT 0;
 
 -- Rename features column for clarity
 ALTER TABLE saas_tools
@@ -112,9 +112,25 @@ ALTER TABLE saas_tools
 ALTER TABLE saas_tools
   ADD COLUMN bloaty_features JSONB DEFAULT '[]'::jsonb;
 
--- Update feature structure
--- core_features: [{"id": 1, "name": "User Management", "description": "Full CRUD for users", "icon": "users"}]
--- bloaty_features: [{"id": 1, "name": "Advanced Analytics", "description": "Rarely used reports"}]
+-- Update feature structure (NO HARD LIMITS - flexible count)
+-- core_features: [
+--   {
+--     "id": 1,
+--     "name": "User Management",
+--     "description": "Full CRUD for users",
+--     "icon": "users",
+--     "priority": 1  // Lower number = higher priority (for sorting "top 20")
+--   }
+-- ]
+-- bloaty_features: [
+--   {
+--     "id": 1,
+--     "name": "Advanced Analytics",
+--     "description": "Rarely used reports",
+--     "icon": "bar-chart",
+--     "priority": 5
+--   }
+-- ]
 ```
 
 **Categories Reference Data**
@@ -243,10 +259,52 @@ export const useSaasToolsStore = create(persist((set, get) => ({
 - Cost calculator sidebar
 
 **3. `FeatureList.jsx`**
-- Renders core features with green badges
-- Renders bloaty features with red "BLOAT" badges
+- Renders **top 20 core features** with green badges (sorted by priority)
+- Renders **top 10 bloaty features** with red "BLOAT" badges (sorted by priority)
+- **"Show More" button** if total features > 30 (expands to show all)
 - Tooltip descriptions on hover
 - Icons per feature type
+- Smooth expand/collapse animation
+
+**Example Component Logic:**
+```jsx
+function FeatureList({ coreFeatures, bloatyFeatures }) {
+  const [showAllCore, setShowAllCore] = useState(false);
+  const [showAllBloat, setShowAllBloat] = useState(false);
+
+  // Display top 20 core (or all if fewer than 20)
+  const displayedCore = showAllCore ? coreFeatures : coreFeatures.slice(0, 20);
+  const hasMoreCore = coreFeatures.length > 20;
+
+  // Display top 10 bloat (or all if fewer than 10)
+  const displayedBloat = showAllBloat ? bloatyFeatures : bloatyFeatures.slice(0, 10);
+  const hasMoreBloat = bloatyFeatures.length > 10;
+
+  return (
+    <>
+      <section>
+        <h3>Core Features ({coreFeatures.length})</h3>
+        {displayedCore.map(feature => <FeatureItem {...feature} type="core" />)}
+        {hasMoreCore && (
+          <button onClick={() => setShowAllCore(!showAllCore)}>
+            {showAllCore ? 'Show Less' : `Show ${coreFeatures.length - 20} More`}
+          </button>
+        )}
+      </section>
+
+      <section>
+        <h3>Bloaty Features ({bloatyFeatures.length})</h3>
+        {displayedBloat.map(feature => <FeatureItem {...feature} type="bloat" />)}
+        {hasMoreBloat && (
+          <button onClick={() => setShowAllBloat(!showAllBloat)}>
+            {showAllBloat ? 'Show Less' : `Show ${bloatyFeatures.length - 10} More`}
+          </button>
+        )}
+      </section>
+    </>
+  );
+}
+```
 
 **4. `TierSelector.jsx`**
 - Dropdown or card-based tier selection
@@ -273,10 +331,11 @@ export const useSaasToolsStore = create(persist((set, get) => ({
 
 ### Perplexity API Prompt Updates
 
-**CRITICAL:** The current Perplexity prompt requests 10-12 features total with mixed core/bloat. We need to update it to match the new schema.
+**CRITICAL:** The current Perplexity prompt requests 10-12 features total with mixed core/bloat. We need to update it to collect ALL features with flexible counts.
 
 #### Current Prompt Issues (server.js:88-124)
-- Requests "10-12 features total" → Should be **exactly 30 features (20 core + 10 bloat)**
+- Requests "10-12 features total" → Should get **ALL features (no limit)**
+- No priority ranking → Need **priority scores** to show "top 20 core" and "top 10 bloat"
 - Returns single `monthly_cost` → Should return **subscription_tiers array**
 - No tier information → Need tier names, pricing, feature mapping
 
@@ -299,18 +358,34 @@ export const useSaasToolsStore = create(persist((set, get) => ({
       "id": 1,
       "name": "User Management",
       "description": "Create, edit, and manage user accounts",
-      "icon": "users"
+      "icon": "users",
+      "priority": 1
+    },
+    {
+      "id": 2,
+      "name": "Team Collaboration",
+      "description": "Real-time collaboration features",
+      "icon": "users",
+      "priority": 2
     }
-    // ... exactly 20 core features
+    // ... ALL core features (could be 8, could be 40+)
   ],
   "bloaty_features": [
     {
       "id": 1,
       "name": "Advanced Analytics Dashboard",
       "description": "Complex reporting rarely used by 80%+ of users",
-      "icon": "bar-chart"
+      "icon": "bar-chart",
+      "priority": 1
+    },
+    {
+      "id": 2,
+      "name": "White Label Branding",
+      "description": "Customize platform with your brand",
+      "icon": "palette",
+      "priority": 2
     }
-    // ... exactly 10 bloaty features
+    // ... ALL bloaty features (could be 3, could be 20+)
   ],
   "subscription_tiers": [
     {
@@ -336,17 +411,21 @@ export const useSaasToolsStore = create(persist((set, get) => ({
 }
 
 CRITICAL RULES:
-1. **Core Features (EXACTLY 20):**
-   - Essential features used by 80%+ of customers daily/weekly
-   - Basic functionality that defines the tool's primary purpose
+1. **Core Features (GET ALL - NO LIMIT):**
+   - List EVERY essential feature used by 80%+ of customers
+   - Include all basic functionality that defines the tool
    - Examples: "Send Messages", "File Sharing", "User Authentication", "Search"
-   - Must be realistic and specific to this tool
+   - Don't artificially limit - some tools have 8 core features, others have 40+
+   - Assign priority 1-100 (lower = more important/commonly used)
+   - Priority helps UI show "top 20" but store ALL
 
-2. **Bloaty Features (EXACTLY 10):**
-   - Advanced features rarely used by 80%+ of customers
+2. **Bloaty Features (GET ALL - NO LIMIT):**
+   - List EVERY advanced feature rarely used by 80%+ of customers
    - Enterprise-only or niche functionality
    - Examples: "Advanced Security Controls", "Custom Integrations", "White Labeling"
-   - Mark features that most small-medium businesses don't need
+   - Some tools have 3 bloaty features, others have 20+
+   - Assign priority 1-100 (lower = more important among bloat features)
+   - Priority helps UI show "top 10" but store ALL
 
 3. **Feature Descriptions:**
    - Keep under 100 characters
@@ -358,7 +437,15 @@ CRITICAL RULES:
    - Examples: "users", "message-circle", "file", "lock", "settings", "zap"
    - Choose icons that visually represent the feature
 
-5. **Subscription Tiers (2-5 tiers):**
+5. **Feature Priority (NEW):**
+   - Assign priority number 1-100 to each feature
+   - Priority 1 = most important/commonly used
+   - Priority 100 = least important/rarely used
+   - For core features: rank by usage frequency (e.g., "Send Message" = 1, "Export Data" = 40)
+   - For bloaty features: rank by how bloated (e.g., "Basic Reports" = 1, "AI Predictions" = 10)
+   - This allows UI to show "top 20 core" and "top 10 bloat" while storing all
+
+6. **Subscription Tiers (2-5 tiers):**
    - Look up actual current pricing from the vendor's website
    - tier_order: 0 (cheapest) to 4 (most expensive)
    - price_model: "per_seat" (price per user), "flat" (fixed price), or "usage_based"
@@ -368,11 +455,11 @@ CRITICAL RULES:
    - Include Free/Trial tier if available
    - Include Enterprise tier (can set price_monthly as null if "Contact Sales")
 
-6. **Category:**
+7. **Category:**
    - Choose ONE from: communication, productivity, development, design, marketing,
      sales-crm, analytics, project-management, finance, hr-recruiting
 
-7. **Data Accuracy:**
+8. **Data Accuracy:**
    - Use current 2025 pricing data
    - If pricing unavailable, estimate reasonably based on similar tools
    - Be honest if you're unsure (note in "notes" field)
@@ -391,16 +478,23 @@ Update the data parsing and storage logic:
 // Parse AI response
 const toolData = JSON.parse(content);
 
-// Validate feature counts
-if (!toolData.core_features || toolData.core_features.length !== 20) {
-  throw new Error(`Expected 20 core features, got ${toolData.core_features?.length || 0}`);
+// Validate feature structure (NO HARD COUNTS - flexible)
+if (!toolData.core_features || !Array.isArray(toolData.core_features)) {
+  throw new Error('core_features must be an array');
 }
-if (!toolData.bloaty_features || toolData.bloaty_features.length !== 10) {
-  throw new Error(`Expected 10 bloaty features, got ${toolData.bloaty_features?.length || 0}`);
+if (!toolData.bloaty_features || !Array.isArray(toolData.bloaty_features)) {
+  throw new Error('bloaty_features must be an array');
+}
+if (toolData.core_features.length === 0) {
+  throw new Error('Tool must have at least 1 core feature');
 }
 if (!toolData.subscription_tiers || toolData.subscription_tiers.length < 2) {
   throw new Error('Expected at least 2 subscription tiers');
 }
+
+// Sort features by priority (lowest priority = most important)
+toolData.core_features.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+toolData.bloaty_features.sort((a, b) => (a.priority || 999) - (b.priority || 999));
 
 // Store in database with new schema
 const client = await pool.connect();
@@ -475,9 +569,10 @@ curl -X GET "http://localhost:3000/api/tools/search?q=Slack"
 ```
 
 **Expected Output Validation:**
-- ✅ Exactly 20 core features
-- ✅ Exactly 10 bloaty features
-- ✅ Each feature has: id, name, description (< 100 chars), icon
+- ✅ At least 1 core feature (no upper limit)
+- ✅ 0+ bloaty features (flexible - some tools might have none)
+- ✅ Each feature has: id, name, description (< 100 chars), icon, **priority**
+- ✅ Features sorted by priority (1 = highest priority)
 - ✅ 2-5 subscription tiers
 - ✅ Each tier has: tier_name, tier_order, price_monthly, price_yearly, price_model
 - ✅ Prices match current vendor pricing (spot check)
@@ -659,7 +754,7 @@ boxShadow: {
 ### Functional Requirements
 
 - [ ] **FR1**: User can browse 100 pre-populated SaaS tools in a grid/list view
-- [ ] **FR2**: Each tool displays exactly 20 core features and 10 bloaty features
+- [ ] **FR2**: Each tool displays up to 20 core features and 10 bloaty features initially (prioritized by importance)
 - [ ] **FR3**: Core features are visually distinct (green badge/section) from bloaty features (red badge)
 - [ ] **FR4**: User can filter tools by category (10 categories)
 - [ ] **FR5**: User can search tools by name or keyword
@@ -670,7 +765,9 @@ boxShadow: {
 - [ ] **FR10**: Cost calculator shows per-user breakdown for per-seat pricing
 - [ ] **FR11**: Cost calculator displays both monthly and yearly totals
 - [ ] **FR12**: UI matches Postable.com aesthetic (colors, spacing, typography)
-- [ ] **FR13**: All 100 tools have complete data (30 features + tiers + pricing)
+- [ ] **FR13**: All 100 tools have complete data (all features + tiers + pricing)
+- [ ] **FR16**: "Show More" button appears if tool has more than 20 core or 10 bloaty features
+- [ ] **FR17**: Clicking "Show More" expands to reveal all remaining features with smooth animation
 - [ ] **FR14**: Tool selection persists in localStorage (or user account if auth added)
 - [ ] **FR15**: Mobile responsive layout works on screens 320px+
 
@@ -755,7 +852,7 @@ boxShadow: {
 - [ ] Create database migration: `categories` reference data
 - [ ] **Update Perplexity API prompt in `server.js`** (lines 88-124) to request 20 core + 10 bloaty features + tiers
 - [ ] **Update API response parsing logic** (lines 136-158) to handle new schema and insert tiers
-- [ ] Add validation for feature counts (20 core, 10 bloaty)
+- [ ] Add validation for feature structure (arrays, required fields, priority sorting)
 - [ ] Build API endpoint: `GET /api/saas-tools` (list with pagination)
 - [ ] Build API endpoint: `GET /api/saas-tools/:id` (detail with tiers)
 - [ ] Build API endpoint: `POST /api/calculate-cost`
@@ -768,7 +865,8 @@ boxShadow: {
 - Run migrations on local dev database
 - Test API endpoints with Postman/curl
 - Verify constraints work (try inserting 21 core features → should fail)
-- **Verify Perplexity returns exactly 20 core + 10 bloaty features**
+- **Verify Perplexity returns flexible feature counts with priority scores**
+- **Verify features are sorted by priority correctly**
 - **Verify subscription tiers are created correctly**
 
 ### Phase 2: Data Population
@@ -818,7 +916,7 @@ boxShadow: {
 - [ ] Create `CategoryFilter.jsx` component
 - [ ] Create `SearchBar.jsx` component
 - [ ] Create `ToolDetailView.jsx` component (layout shell)
-- [ ] Create `FeatureList.jsx` component (20 core + 10 bloat)
+- [ ] Create `FeatureList.jsx` component (top 20 core + top 10 bloat + "Show More")
 - [ ] Create `TierSelector.jsx` component (dropdown)
 - [ ] Create `CostCalculator.jsx` component (sidebar)
 - [ ] Create loading skeleton components
