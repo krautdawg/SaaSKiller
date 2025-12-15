@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import useSaasToolsStore from '../store/saasToolsStore';
@@ -20,6 +20,7 @@ import CostCalculator from './CostCalculator';
 const ToolDetailView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [logoError, setLogoError] = useState(false);
 
   const {
     selectedTool,
@@ -153,15 +154,12 @@ const ToolDetailView = () => {
             <div className="flex items-start gap-4 flex-1">
               {/* Logo */}
               <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
-                {selectedTool.logo_url ? (
+                {selectedTool.logo_url && !logoError ? (
                   <img
                     src={selectedTool.logo_url}
                     alt={`${selectedTool.name} logo`}
                     className="w-full h-full object-contain"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400 font-semibold text-2xl">${selectedTool.name.charAt(0)}</div>`;
-                    }}
+                    onError={() => setLogoError(true)}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400 font-semibold text-2xl">

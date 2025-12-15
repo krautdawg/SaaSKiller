@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ExternalLink, Users, DollarSign } from 'lucide-react';
 
@@ -14,6 +15,7 @@ import { ExternalLink, Users, DollarSign } from 'lucide-react';
  */
 const ToolCard = ({ tool }) => {
   const navigate = useNavigate();
+  const [logoError, setLogoError] = useState(false);
 
   if (!tool) return null;
 
@@ -51,15 +53,12 @@ const ToolCard = ({ tool }) => {
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Logo */}
           <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
-            {tool.logo_url ? (
+            {tool.logo_url && !logoError ? (
               <img
                 src={tool.logo_url}
                 alt={`${tool.name} logo`}
                 className="w-full h-full object-contain"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400 font-semibold text-lg">${tool.name.charAt(0)}</div>`;
-                }}
+                onError={() => setLogoError(true)}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400 font-semibold text-lg">

@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import pg from 'pg';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 
 dotenv.config();
 
@@ -12,12 +14,64 @@ const PORT = process.env.PORT || 3000;
 const { Pool } = pg;
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production'
+    ? {
+        rejectUnauthorized: true, // Enable SSL certificate validation
+        ca: process.env.DATABASE_CA_CERT, // Optional: CA certificate
+      }
+    : false
+});
+
+// Rate limiting configuration
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per 15min window
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Only 5 AI analysis requests per 15min
+  message: { error: 'Too many analysis requests, please try again in 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const leadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 leads per hour max
+  message: { error: 'Too many lead submissions' },
+  standardHeaders: true,
+  legacyHeaders: false
 });
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+// Add security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allow cross-origin resources
+}));
+
+// Configure CORS - restrict to specific origins
+const corsOptions = {
+  origin: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:5173', 'http://localhost:3000'], // Default for development
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10kb' })); // Add request size limit
+app.use('/api/', generalLimiter); // Apply general rate limit to all API routes
 
 // Database initialization - Auto-create tables on startup
 async function initializeDatabase() {
@@ -139,6 +193,74 @@ async function initializeDatabase() {
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    // Add database constraints (data integrity fixes)
+    await client.query(`
+      DO $$ BEGIN
+        -- Add NOT NULL constraints for price fields
+        BEGIN
+          ALTER TABLE subscription_tiers ALTER COLUMN price_monthly SET NOT NULL;
+        EXCEPTION WHEN others THEN
+          -- First set NULL values to 0, then add constraint
+          UPDATE subscription_tiers SET price_monthly = 0 WHERE price_monthly IS NULL;
+          ALTER TABLE subscription_tiers ALTER COLUMN price_monthly SET NOT NULL;
+        END;
+
+        BEGIN
+          ALTER TABLE subscription_tiers ALTER COLUMN price_yearly SET NOT NULL;
+        EXCEPTION WHEN others THEN
+          UPDATE subscription_tiers SET price_yearly = 0 WHERE price_yearly IS NULL;
+          ALTER TABLE subscription_tiers ALTER COLUMN price_yearly SET NOT NULL;
+        END;
+
+        BEGIN
+          ALTER TABLE subscription_tiers ALTER COLUMN price_model SET NOT NULL;
+        EXCEPTION WHEN others THEN
+          UPDATE subscription_tiers SET price_model = 'per_seat' WHERE price_model IS NULL;
+          ALTER TABLE subscription_tiers ALTER COLUMN price_model SET NOT NULL;
+        END;
+
+        -- Add UNIQUE constraint on (tool_id, tier_order)
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'unique_tool_tier_order'
+        ) THEN
+          -- Clean up duplicates first
+          DELETE FROM subscription_tiers
+          WHERE id NOT IN (
+            SELECT MIN(id)
+            FROM subscription_tiers
+            GROUP BY tool_id, tier_order
+          );
+
+          ALTER TABLE subscription_tiers
+            ADD CONSTRAINT unique_tool_tier_order UNIQUE (tool_id, tier_order);
+        END IF;
+
+        -- Add CHECK constraint for price_model enum
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'check_price_model'
+        ) THEN
+          ALTER TABLE subscription_tiers
+            ADD CONSTRAINT check_price_model
+              CHECK (price_model IN ('per_seat', 'flat', 'usage_based'));
+        END IF;
+
+        -- Add CHECK constraints for positive prices
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'check_price_monthly_positive'
+        ) THEN
+          ALTER TABLE subscription_tiers
+            ADD CONSTRAINT check_price_monthly_positive CHECK (price_monthly >= 0);
+        END IF;
+
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'check_price_yearly_positive'
+        ) THEN
+          ALTER TABLE subscription_tiers
+            ADD CONSTRAINT check_price_yearly_positive CHECK (price_yearly >= 0);
+        END IF;
+      END $$;
     `);
 
     // Create indexes
@@ -406,8 +528,8 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'SaaSKiller API is running' });
 });
 
-// Search tools endpoint
-app.get('/api/tools/search', async (req, res) => {
+// Search tools endpoint (AI-powered, rate limited)
+app.get('/api/tools/search', aiLimiter, async (req, res) => {
   const query = req.query.q;
 
   if (!query) {
@@ -497,19 +619,27 @@ app.get('/api/tools/search', async (req, res) => {
 
       const toolId = toolResult.rows[0].id;
 
-      // Insert subscription tiers
+      // Insert subscription tiers (with ON CONFLICT to handle race conditions)
       for (const tier of toolData.subscription_tiers) {
         await client.query(
           `INSERT INTO subscription_tiers
            (tool_id, tier_name, tier_order, price_monthly, price_yearly,
             price_model, user_limit, notes)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           ON CONFLICT (tool_id, tier_order)
+           DO UPDATE SET
+             tier_name = EXCLUDED.tier_name,
+             price_monthly = EXCLUDED.price_monthly,
+             price_yearly = EXCLUDED.price_yearly,
+             price_model = EXCLUDED.price_model,
+             user_limit = EXCLUDED.user_limit,
+             notes = EXCLUDED.notes`,
           [
             toolId,
             tier.tier_name,
             tier.tier_order,
-            tier.price_monthly,
-            tier.price_yearly,
+            tier.price_monthly || 0,  // Default to 0 for NOT NULL constraint
+            tier.price_yearly || 0,   // Default to 0 for NOT NULL constraint
             tier.price_model || 'per_seat',
             tier.user_limit,
             tier.notes || ''
@@ -565,8 +695,8 @@ app.get('/api/tools/search', async (req, res) => {
   }
 });
 
-// Submit lead endpoint
-app.post('/api/leads', async (req, res) => {
+// Submit lead endpoint (rate limited to prevent spam)
+app.post('/api/leads', leadLimiter, async (req, res) => {
   const { email, tool_name, bleed_amount } = req.body;
 
   if (!email || !tool_name || bleed_amount === undefined) {
@@ -647,10 +777,21 @@ app.get('/api/saas-tools', async (req, res) => {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     // Validate sort and order
-    const validSorts = ['created_at', 'name', 'popularity_score', 'category'];
-    const validOrders = ['asc', 'desc'];
-    const sortColumn = validSorts.includes(sort) ? sort : 'created_at';
-    const sortOrder = validOrders.includes(order.toLowerCase()) ? order.toUpperCase() : 'DESC';
+    // Define immutable whitelist with explicit mappings (prevents SQL injection)
+    const SORT_COLUMNS = {
+      'created_at': 't.created_at',
+      'name': 't.name',
+      'popularity_score': 't.popularity_score',
+      'category': 't.category'
+    };
+
+    const SORT_ORDERS = {
+      'asc': 'ASC',
+      'desc': 'DESC'
+    };
+
+    const sortColumn = SORT_COLUMNS[sort] || SORT_COLUMNS['created_at'];
+    const sortOrder = SORT_ORDERS[order?.toLowerCase()] || SORT_ORDERS['desc'];
 
     // Get total count
     const countResult = await pool.query(
@@ -679,7 +820,7 @@ app.get('/api/saas-tools', async (req, res) => {
        LEFT JOIN subscription_tiers st ON st.tool_id = t.id
        ${whereClause}
        GROUP BY t.id
-       ORDER BY t.${sortColumn} ${sortOrder}
+       ORDER BY ${sortColumn} ${sortOrder}
        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
       values
     );
@@ -913,8 +1054,8 @@ Rules:
   }
 }
 
-// Analyze custom feature endpoint
-app.post('/api/analyze-custom-feature', async (req, res) => {
+// Analyze custom feature endpoint (AI-powered, rate limited)
+app.post('/api/analyze-custom-feature', aiLimiter, async (req, res) => {
   const { feature_name } = req.body;
 
   if (!feature_name || typeof feature_name !== 'string' || !feature_name.trim()) {

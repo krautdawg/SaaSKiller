@@ -1,0 +1,449 @@
+{
+  "statistics": {
+    "detectionDate": "2025-12-15T12:57:46.537Z",
+    "formats": {
+      "javascript": {
+        "sources": {
+          "src/components/ToolSearch.jsx": {
+            "lines": 140,
+            "tokens": 1061,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/ToolDetailView.jsx": {
+            "lines": 165,
+            "tokens": 1087,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/ToolCard.jsx": {
+            "lines": 44,
+            "tokens": 311,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/ToolBrowser.jsx": {
+            "lines": 173,
+            "tokens": 1255,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/TierSelector.jsx": {
+            "lines": 61,
+            "tokens": 390,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/QuoteGenerator.jsx": {
+            "lines": 0,
+            "tokens": 11,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/PricingPage.jsx": {
+            "lines": 329,
+            "tokens": 3038,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/FeatureList.jsx": {
+            "lines": 34,
+            "tokens": 250,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/CostCalculator.jsx": {
+            "lines": 38,
+            "tokens": 203,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/CategoryFilter.jsx": {
+            "lines": 36,
+            "tokens": 200,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/BleedCalculator.jsx": {
+            "lines": 23,
+            "tokens": 228,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/AuditChecklist.jsx": {
+            "lines": 96,
+            "tokens": 818,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 44,
+            "duplicatedTokens": 400,
+            "percentage": 45.83,
+            "percentageTokens": 48.9,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 1139,
+          "tokens": 8852,
+          "sources": 12,
+          "clones": 1,
+          "duplicatedLines": 22,
+          "duplicatedTokens": 200,
+          "percentage": 1.93,
+          "percentageTokens": 2.26,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "jsx": {
+        "sources": {
+          "src/components/ToolSearch.jsx": {
+            "lines": 290,
+            "tokens": 2277,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/ToolDetailView.jsx": {
+            "lines": 272,
+            "tokens": 1784,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/ToolCard.jsx": {
+            "lines": 152,
+            "tokens": 1097,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/ToolBrowser.jsx": {
+            "lines": 289,
+            "tokens": 1992,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/TierSelector.jsx": {
+            "lines": 164,
+            "tokens": 1099,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/QuoteGenerator.jsx": {
+            "lines": 36,
+            "tokens": 406,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/PricingPage.jsx": {
+            "lines": 647,
+            "tokens": 6504,
+            "sources": 1,
+            "clones": 4,
+            "duplicatedLines": 30,
+            "duplicatedTokens": 298,
+            "percentage": 4.64,
+            "percentageTokens": 4.58,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/FeatureList.jsx": {
+            "lines": 140,
+            "tokens": 979,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/CostCalculator.jsx": {
+            "lines": 240,
+            "tokens": 1610,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/CategoryFilter.jsx": {
+            "lines": 119,
+            "tokens": 712,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/BleedCalculator.jsx": {
+            "lines": 68,
+            "tokens": 627,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/AuditChecklist.jsx": {
+            "lines": 169,
+            "tokens": 1479,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 2586,
+          "tokens": 20566,
+          "sources": 12,
+          "clones": 2,
+          "duplicatedLines": 15,
+          "duplicatedTokens": 149,
+          "percentage": 0.58,
+          "percentageTokens": 0.72,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      }
+    },
+    "total": {
+      "lines": 3725,
+      "tokens": 29418,
+      "sources": 24,
+      "clones": 3,
+      "duplicatedLines": 37,
+      "duplicatedTokens": 349,
+      "percentage": 0.99,
+      "percentageTokens": 1.19,
+      "newDuplicatedLines": 0,
+      "newClones": 0
+    }
+  },
+  "duplicates": [
+    {
+      "format": "jsx",
+      "lines": 9,
+      "fragment": "K\n                </div>\n                <p className=\"text-sm text-gray-600 font-sans\">One-time payment</p>\n              </div>\n\n              <ul className=\"space-y-3 mb-8\">\n                <li className=\"flex items-start gap-3\">\n                  <Check className=\"w-5 h-5 text-brand-secondary flex-shrink-0 mt-0.5\" />\n                  <span className=\"text-sm font-sans\">5",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/components/PricingPage.jsx",
+        "start": 165,
+        "end": 173,
+        "startLoc": {
+          "line": 165,
+          "column": 2,
+          "position": 1594
+        },
+        "endLoc": {
+          "line": 173,
+          "column": 2,
+          "position": 1670
+        }
+      },
+      "secondFile": {
+        "name": "src/components/PricingPage.jsx",
+        "start": 116,
+        "end": 124,
+        "startLoc": {
+          "line": 116,
+          "column": 4,
+          "position": 1140
+        },
+        "endLoc": {
+          "line": 124,
+          "column": 2,
+          "position": 1216
+        }
+      }
+    },
+    {
+      "format": "jsx",
+      "lines": 8,
+      "fragment": "</div>\n                <p className=\"text-sm text-gray-600 font-sans\">One-time payment</p>\n              </div>\n\n              <ul className=\"space-y-3 mb-8\">\n                <li className=\"flex items-start gap-3\">\n                  <Check className=\"w-5 h-5 text-brand-secondary flex-shrink-0 mt-0.5\" />\n                  <span className=\"text-sm font-sans\">20",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/components/PricingPage.jsx",
+        "start": 215,
+        "end": 222,
+        "startLoc": {
+          "line": 215,
+          "column": 17,
+          "position": 2075
+        },
+        "endLoc": {
+          "line": 222,
+          "column": 3,
+          "position": 2148
+        }
+      },
+      "secondFile": {
+        "name": "src/components/PricingPage.jsx",
+        "start": 117,
+        "end": 124,
+        "startLoc": {
+          "line": 117,
+          "column": 17,
+          "position": 1143
+        },
+        "endLoc": {
+          "line": 124,
+          "column": 2,
+          "position": 1216
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 23,
+      "fragment": "={idx} className=\"flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer transition-colors group\">\n                <input\n                  type=\"checkbox\"\n                  checked={!!checkedFeatures[feature.name]}\n                  onChange={() => toggleFeature(feature.name)}\n                  className=\"w-4 h-4 rounded border-gray-300 focus:ring-offset-0 focus:ring-0 mr-2 accent-brand-secondary flex-shrink-0\"\n                />\n                <div className=\"flex-1 font-sans text-sm\">\n                  <span className={`${!checkedFeatures[feature.name] ? 'line-through text-gray-400' : 'text-brand-text'}`}>\n                    {feature.name}\n                  </span>\n                  <span className=\"ml-1 text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded uppercase font-bold\">Bloat</span>\n                </div>\n              </label>\n            ))}\n          </div>\n        </div>\n      )}\n\n      {/* Custom Features Box */}\n      <div className=\"p-4 rounded-xl border bg-white border-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)]\">\n        <h4 className=\"text-lg font-bold mb-2 font-heading\">Add Custom \"Vibe\" Features</h4>\n        <form onSubmit={handleAddCustom",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/components/AuditChecklist.jsx",
+        "start": 88,
+        "end": 110,
+        "startLoc": {
+          "line": 88,
+          "column": 4,
+          "position": 821
+        },
+        "endLoc": {
+          "line": 110,
+          "column": 16,
+          "position": 1021
+        }
+      },
+      "secondFile": {
+        "name": "src/components/AuditChecklist.jsx",
+        "start": 41,
+        "end": 60,
+        "startLoc": {
+          "line": 41,
+          "column": 4,
+          "position": 432
+        },
+        "endLoc": {
+          "line": 60,
+          "column": 2,
+          "position": 593
+        }
+      }
+    }
+  ]
+}
