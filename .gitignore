@@ -35,3 +35,6 @@ pb_data/
 *.db
 *.db-shm
 *.db-wal
+
+# Deployment guides (infrastructure-specific)
+deploymentguide.md
