@@ -7,6 +7,7 @@ const useAuditStore = create((set, get) => ({
   checkedFeatures: {}, // Map<featureName, boolean>
   userCount: 5,
   customFeatures: [], // Array<{name: string, complexity: string, estimated_hours: number, isAnalyzing?: boolean}>
+  customPricePerUser: '', // Manual price entry when AI fails to return pricing
 
   // Actions
   setStep: (step) => set({ currentStep: step }),
@@ -31,10 +32,16 @@ const useAuditStore = create((set, get) => ({
       }
     }
 
-    set({ selectedTool: tool, checkedFeatures: initialChecks, selectedTier: defaultTier });
+    set({
+      selectedTool: tool,
+      checkedFeatures: initialChecks,
+      selectedTier: defaultTier,
+      customPricePerUser: ''
+    });
   },
 
   setSelectedTier: (tier) => set({ selectedTier: tier }),
+  setCustomPricePerUser: (value) => set({ customPricePerUser: value }),
   
   toggleFeature: (featureName) => set((state) => ({
     checkedFeatures: {
@@ -107,12 +114,15 @@ const useAuditStore = create((set, get) => ({
   },
 
   calculateBleed: () => {
-    const { selectedTool, userCount, selectedTier } = get();
+    const { selectedTool, userCount, selectedTier, customPricePerUser } = get();
     if (!selectedTool) return 0;
 
     // Use selected tier pricing if available, otherwise fall back to tool's monthly_cost
     let monthlyCostPerUser = 0;
-    if (selectedTier && selectedTier.price_per_user) {
+    const manualPrice = parseFloat(customPricePerUser);
+    if (!Number.isNaN(manualPrice) && manualPrice > 0) {
+      monthlyCostPerUser = manualPrice;
+    } else if (selectedTier && selectedTier.price_per_user) {
       monthlyCostPerUser = Number(selectedTier.price_per_user) || 0;
     } else {
       // Fallback to legacy monthly_cost field

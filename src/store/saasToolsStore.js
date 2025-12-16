@@ -26,6 +26,7 @@ const useSaasToolsStore = create((set, get) => ({
   teamSize: 1,
   billingPeriod: 'monthly', // 'monthly' or 'yearly'
   costCalculation: null,
+  manualPricePerUser: '',
 
   // Feature expansion state
   showAllCoreFeatures: false,
@@ -213,7 +214,8 @@ const useSaasToolsStore = create((set, get) => ({
       set({
         selectedTool: tool,
         selectedTier: defaultTier,
-        isLoadingTool: false
+        isLoadingTool: false,
+        manualPricePerUser: ''
       });
 
       // Auto-calculate cost for default tier
@@ -236,7 +238,15 @@ const useSaasToolsStore = create((set, get) => ({
    * Select a subscription tier
    */
   selectTier: async (tier) => {
-    set({ selectedTier: tier });
+    set({ selectedTier: tier, manualPricePerUser: '' });
+    await get().calculateCost();
+  },
+
+  /**
+   * Manually set price per user when pricing is missing
+   */
+  setManualPricePerUser: async (value) => {
+    set({ manualPricePerUser: value });
     await get().calculateCost();
   },
 
@@ -261,7 +271,7 @@ const useSaasToolsStore = create((set, get) => ({
    * Calculate cost for current tier and team size
    */
   calculateCost: async () => {
-    const { selectedTool, selectedTier, teamSize, billingPeriod } = get();
+    const { selectedTool, selectedTier, teamSize, billingPeriod, manualPricePerUser } = get();
 
     if (!selectedTool || !selectedTier) {
       set({ costCalculation: null });
@@ -269,6 +279,45 @@ const useSaasToolsStore = create((set, get) => ({
     }
 
     set({ isCalculatingCost: true, costError: null });
+
+    // If pricing is missing, allow manual input
+    const manualPrice = parseFloat(manualPricePerUser);
+    const tierName = (selectedTier.tier_name || selectedTier.name || '').toLowerCase();
+    const priceValues = [
+      selectedTier.price_monthly,
+      selectedTier.price_per_user,
+      selectedTier.price_yearly
+    ];
+
+    const hasAnyPricingValue = priceValues.some((value) => value !== null && value !== undefined);
+    const looksMissingPrice = priceValues.every((value) => value == null || Number(value) === 0);
+    const needsManualPrice = (!hasAnyPricingValue || looksMissingPrice) && !tierName.includes('free');
+
+    if (needsManualPrice && manualPrice > 0) {
+      const monthly_cost = manualPrice * teamSize;
+      const yearly_cost = monthly_cost * 12;
+      set({
+        costCalculation: {
+          monthly_cost,
+          yearly_cost,
+          yearly_monthly_equivalent: yearly_cost / 12,
+          price_model: 'per_seat',
+          savings_percent: 0
+        },
+        isCalculatingCost: false,
+        costError: null
+      });
+      return;
+    }
+
+    if (needsManualPrice && (Number.isNaN(manualPrice) || manualPrice <= 0)) {
+      set({
+        costCalculation: null,
+        costError: 'Add a price per user to estimate costs.',
+        isCalculatingCost: false
+      });
+      return;
+    }
 
     try {
       const costData = await saasToolsApi.calculateCost({
@@ -353,14 +402,15 @@ const useSaasToolsStore = create((set, get) => ({
    * Clear selected tool (for navigation away from detail view)
    */
   clearSelectedTool: () => {
-    set({
-      selectedTool: null,
-      selectedTier: null,
-      costCalculation: null,
-      showAllCoreFeatures: false,
-      showAllBloatyFeatures: false,
-      toolError: null
-    });
+      set({
+        selectedTool: null,
+        selectedTier: null,
+        costCalculation: null,
+        showAllCoreFeatures: false,
+        showAllBloatyFeatures: false,
+        toolError: null,
+        manualPricePerUser: ''
+      });
   }
 }));
 

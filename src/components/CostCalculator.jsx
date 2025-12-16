@@ -20,6 +20,8 @@ import { DollarSign, Users, Loader2, TrendingDown } from 'lucide-react';
  * - costError: Error message if calculation fails
  * - onTeamSizeChange: Callback for team size changes
  * - onBillingPeriodChange: Callback for billing period toggle
+ * - manualPricePerUser: Manual price entry when pricing missing
+ * - onManualPriceChange: Callback for manual price
  */
 const CostCalculator = ({
   selectedTier,
@@ -29,10 +31,21 @@ const CostCalculator = ({
   isCalculating,
   costError,
   onTeamSizeChange,
-  onBillingPeriodChange
+  onBillingPeriodChange,
+  manualPricePerUser = '',
+  onManualPriceChange = () => {}
 }) => {
   const [localTeamSize, setLocalTeamSize] = useState(teamSize);
   const [teamSizeError, setTeamSizeError] = useState('');
+  const tierName = (selectedTier?.tier_name || selectedTier?.name || '').toLowerCase();
+  const priceValues = [
+    selectedTier?.price_monthly,
+    selectedTier?.price_per_user,
+    selectedTier?.price_yearly
+  ];
+  const hasAnyPricingValue = priceValues.some((value) => value !== null && value !== undefined);
+  const looksMissingPrice = priceValues.every((value) => value == null || Number(value) === 0);
+  const needsManualPrice = selectedTier && (!hasAnyPricingValue || looksMissingPrice) && !tierName.includes('free');
 
   const handleTeamSizeChange = (e) => {
     const value = e.target.value;
@@ -70,6 +83,10 @@ const CostCalculator = ({
 
   const handleBillingToggle = (period) => {
     onBillingPeriodChange(period);
+  };
+
+  const handleManualPriceChange = (e) => {
+    onManualPriceChange(e.target.value);
   };
 
   const formatCurrency = (amount) => {
@@ -110,6 +127,27 @@ const CostCalculator = ({
                 {selectedTier.price_model.replace('_', ' ')} pricing
               </div>
             )}
+          </div>
+        )}
+
+        {/* Manual price fallback */}
+        {needsManualPrice && (
+          <div>
+            <label className="block text-sm font-semibold text-brand-text mb-2">
+              Enter price per user / month
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={manualPricePerUser}
+              onChange={handleManualPriceChange}
+              className="w-full px-4 py-2 border rounded-button focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-transparent text-sm"
+              placeholder="e.g. 49"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Pricing missing for this tier. Add it to estimate costs.
+            </p>
           </div>
         )}
 

@@ -58,7 +58,12 @@ const TierSelector = ({ tiers = [], selectedTier, onSelectTier }) => {
       return 'Custom pricing';
     }
 
-    const monthlyPrice = tier.price_monthly || 0;
+    const monthlyPrice = tier.price_monthly || tier.price_per_user || 0;
+
+    if (!monthlyPrice) {
+      return 'Price missing';
+    }
+
     const priceText = `$${monthlyPrice}/mo`;
 
     if (tier.price_model === 'per_seat') {

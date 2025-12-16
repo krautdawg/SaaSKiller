@@ -27,6 +27,7 @@ const ToolDetailView = () => {
     selectedTier,
     teamSize,
     billingPeriod,
+    manualPricePerUser,
     costCalculation,
     isLoadingTool,
     isCalculatingCost,
@@ -36,7 +37,8 @@ const ToolDetailView = () => {
     selectTier,
     setTeamSize,
     setBillingPeriod,
-    clearSelectedTool
+    clearSelectedTool,
+    setManualPricePerUser
   } = useSaasToolsStore();
 
   // Fetch tool on mount
@@ -339,6 +341,8 @@ const ToolDetailView = () => {
                 costError={costError}
                 onTeamSizeChange={setTeamSize}
                 onBillingPeriodChange={setBillingPeriod}
+                manualPricePerUser={manualPricePerUser}
+                onManualPriceChange={setManualPricePerUser}
               />
             )}
           </div>
