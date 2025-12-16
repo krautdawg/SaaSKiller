@@ -28,7 +28,7 @@ services:
     container_name: saaskiller-backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-saaskiller}
       PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY:?PERPLEXITY_API_KEY is required}
       PORT: ${PORT:-3000}
       NODE_ENV: ${NODE_ENV:-production}
