@@ -74,13 +74,92 @@ const ToolDetailView = () => {
         : selectedTool.bloaty_features)
     : [];
 
-  // Loading State
+  // Loading State - Skeleton
   if (isLoadingTool) {
     return (
-      <div className="min-h-screen bg-brand-surface flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-secondary animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading tool details...</p>
+      <div className="min-h-screen bg-brand-surface">
+        {/* Header Skeleton */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-6 py-6 animate-pulse">
+            {/* Back Button Skeleton */}
+            <div className="h-4 bg-gray-200 rounded w-32 mb-6"></div>
+
+            {/* Tool Header Skeleton */}
+            <div className="flex items-start justify-between gap-6">
+              <div className="flex items-start gap-4 flex-1">
+                {/* Logo Skeleton */}
+                <div className="w-16 h-16 rounded-lg bg-gray-200 flex-shrink-0"></div>
+
+                {/* Name & Description Skeleton */}
+                <div className="flex-1 space-y-3">
+                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-6 bg-gray-200 rounded-full w-24"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visit Website Button Skeleton */}
+              <div className="h-10 bg-gray-200 rounded w-32"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Skeleton */}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column: Features Skeleton */}
+            <div className="lg:col-span-2 space-y-8 animate-pulse">
+              {/* Tier Selector Skeleton */}
+              <div className="bg-white rounded-card border border-gray-200 p-6 shadow-card space-y-4">
+                <div className="h-5 bg-gray-200 rounded w-32 mb-3"></div>
+                <div className="h-10 bg-gray-200 rounded w-full"></div>
+              </div>
+
+              {/* Features Skeleton */}
+              <div className="bg-white rounded-card border border-gray-200 p-6 shadow-card space-y-3">
+                <div className="h-6 bg-gray-200 rounded w-40 mb-4"></div>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0"></div>
+                    <div className="h-4 bg-gray-200 rounded flex-1"></div>
+                  </div>
+                ))}
+              </div>
+
+              {/* More Features Skeleton */}
+              <div className="bg-white rounded-card border border-gray-200 p-6 shadow-card space-y-3">
+                <div className="h-6 bg-gray-200 rounded w-40 mb-4"></div>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0"></div>
+                    <div className="h-4 bg-gray-200 rounded flex-1"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column: Calculator Skeleton */}
+            <div className="lg:col-span-1 animate-pulse">
+              <div className="bg-white rounded-card border border-gray-200 p-6 shadow-card sticky top-24 space-y-4">
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  <div className="h-10 bg-gray-200 rounded w-full"></div>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-32"></div>
+                  <div className="h-10 bg-gray-200 rounded w-full"></div>
+                </div>
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="h-8 bg-gray-200 rounded w-full mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

@@ -393,7 +393,7 @@ const PricingPage = () => {
                 <h4 className="font-bold mb-2 font-heading">Hosting & Deployment</h4>
                 <p className="text-sm text-gray-700 font-sans">
                   We preferably deploy on <strong>Hetzner Cloud</strong> ($5-$100/month depending on usage).
-                  You can also use your own server if preferred. First month included free.
+                  You can also use your own server if preferred.
                 </p>
               </div>
             </div>
@@ -533,7 +533,7 @@ const PricingPage = () => {
                 <ArrowRight className="w-5 h-5 transform group-open:rotate-90 transition-transform" />
               </summary>
               <p className="mt-4 text-gray-700 leading-relaxed font-sans">
-                You can hire us at $150/hour or hire any developer—it's your code. We also offer monthly support packages starting at $200/month.
+                You can hire us at $150/hour or hire any developer—it's your code.
               </p>
             </details>
 

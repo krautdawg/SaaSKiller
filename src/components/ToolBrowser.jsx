@@ -133,11 +133,32 @@ const ToolBrowser = () => {
           </div>
         )}
 
-        {/* Loading State */}
+        {/* Loading State - Skeleton Grid */}
         {isLoadingTools && (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-brand-secondary animate-spin" />
-            <span className="ml-3 text-gray-600">Loading tools...</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-card border border-gray-200 p-6 shadow-card animate-pulse"
+              >
+                {/* Logo skeleton */}
+                <div className="w-12 h-12 bg-gray-200 rounded-lg mb-4"></div>
+                {/* Title skeleton */}
+                <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
+                {/* Description skeletons */}
+                <div className="space-y-2 mb-4">
+                  <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                </div>
+                {/* Category badge skeleton */}
+                <div className="h-6 bg-gray-200 rounded-full w-24 mb-4"></div>
+                {/* Features count skeleton */}
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  <div className="h-4 bg-gray-200 rounded w-16"></div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

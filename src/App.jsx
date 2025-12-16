@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import useAuditStore from './store/auditStore';
 import ToolSearch from './components/ToolSearch';
 import AuditChecklist from './components/AuditChecklist';
@@ -80,9 +81,14 @@ const HomePage = () => {
 
 const App = () => {
   const { setStep } = useAuditStore();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleResetToSearch = () => {
     setStep('search');
+  };
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -95,6 +101,8 @@ const App = () => {
              <div className="w-8 h-8 rounded-full bg-brand-primary"></div>
              <span className="font-bold text-xl tracking-tight font-heading">SaaSKiller</span>
           </Link>
+
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex gap-6 font-sans">
             <Link to="/" onClick={handleResetToSearch} className="font-medium text-gray-600 hover:text-brand-secondary
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
@@ -106,14 +114,77 @@ const App = () => {
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                        rounded transition-colors">Pricing</Link>
           </nav>
-          <Link to="/" onClick={handleResetToSearch} className="bg-brand-accent text-brand-surface px-4 py-2 rounded-lg font-bold
+
+          {/* Desktop CTA Button */}
+          <Link to="/" onClick={handleResetToSearch} className="hidden md:inline-block bg-brand-accent text-brand-surface px-4 py-2 rounded-lg font-bold
                      hover:bg-red-600 hover:-translate-y-1
                      active:translate-y-0 active:scale-95 active:shadow-none
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                      shadow-lg transition-all transform duration-200 text-sm font-sans">
               Get Started
           </Link>
+
+          {/* Mobile Hamburger Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-gray-600 hover:text-brand-secondary
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                     rounded transition-colors"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
         </header>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden fixed top-[73px] left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-40 animate-fade-in">
+            <nav className="flex flex-col p-4 space-y-3 font-sans">
+              <Link
+                to="/"
+                onClick={() => { handleResetToSearch(); closeMobileMenu(); }}
+                className="font-medium text-gray-600 hover:text-brand-secondary py-2 px-3 rounded
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                         transition-colors"
+              >
+                Audit Tool
+              </Link>
+              <Link
+                to="/browse"
+                onClick={closeMobileMenu}
+                className="font-medium text-gray-600 hover:text-brand-secondary py-2 px-3 rounded
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                         transition-colors"
+              >
+                Browse Tools
+              </Link>
+              <Link
+                to="/pricing"
+                onClick={closeMobileMenu}
+                className="font-medium text-gray-600 hover:text-brand-secondary py-2 px-3 rounded
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                         transition-colors"
+              >
+                Pricing
+              </Link>
+              <Link
+                to="/"
+                onClick={() => { handleResetToSearch(); closeMobileMenu(); }}
+                className="bg-brand-accent text-brand-surface px-4 py-3 rounded-lg font-bold text-center
+                         hover:bg-red-600
+                         active:scale-95
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                         shadow-lg transition-all duration-200"
+              >
+                Get Started
+              </Link>
+            </nav>
+          </div>
+        )}
 
         {/* Routes */}
         <Routes>

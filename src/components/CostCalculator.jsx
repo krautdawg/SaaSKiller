@@ -32,10 +32,16 @@ const CostCalculator = ({
   onBillingPeriodChange
 }) => {
   const [localTeamSize, setLocalTeamSize] = useState(teamSize);
+  const [teamSizeError, setTeamSizeError] = useState('');
 
   const handleTeamSizeChange = (e) => {
     const value = e.target.value;
     setLocalTeamSize(value);
+
+    // Clear error when user is typing
+    if (teamSizeError) {
+      setTeamSizeError('');
+    }
 
     // Validate and update store
     const numValue = parseInt(value);
@@ -47,10 +53,16 @@ const CostCalculator = ({
   const handleTeamSizeBlur = () => {
     // Ensure valid value on blur
     const numValue = parseInt(localTeamSize);
-    if (isNaN(numValue) || numValue < 1) {
+    if (isNaN(numValue) || localTeamSize === '') {
+      setTeamSizeError('Team size is required');
+      setLocalTeamSize(1);
+      onTeamSizeChange(1);
+    } else if (numValue < 1) {
+      setTeamSizeError('Team size must be at least 1');
       setLocalTeamSize(1);
       onTeamSizeChange(1);
     } else if (numValue > 1000) {
+      setTeamSizeError('Team size cannot exceed 1000');
       setLocalTeamSize(1000);
       onTeamSizeChange(1000);
     }
@@ -107,7 +119,9 @@ const CostCalculator = ({
             Team Size
           </label>
           <div className="relative">
-            <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Users className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 transition-colors
+              ${teamSizeError ? 'text-red-500' : 'text-gray-400'}`}
+            />
             <input
               type="number"
               min="1"
@@ -115,15 +129,22 @@ const CostCalculator = ({
               value={localTeamSize}
               onChange={handleTeamSizeChange}
               onBlur={handleTeamSizeBlur}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-button
-                       focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-transparent
-                       text-sm"
+              className={`w-full pl-10 pr-4 py-2 border rounded-button
+                       focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-colors
+                       ${teamSizeError
+                         ? 'border-red-500 focus:ring-red-500'
+                         : 'border-gray-300 focus:ring-brand-secondary'
+                       }`}
               placeholder="Enter team size"
             />
           </div>
-          <div className="mt-1 text-xs text-gray-500">
-            Number of team members (1-1000)
-          </div>
+          {teamSizeError ? (
+            <div className="mt-1 text-xs text-red-500">{teamSizeError}</div>
+          ) : (
+            <div className="mt-1 text-xs text-gray-500">
+              Number of team members (1-1000)
+            </div>
+          )}
         </div>
 
         {/* Billing Period Toggle */}
