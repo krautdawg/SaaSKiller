@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ExternalLink, Users, DollarSign } from 'lucide-react';
+import { ExternalLink, Users, DollarSign, ArrowRight } from 'lucide-react';
 
 /**
  * ToolCard Component
