@@ -96,11 +96,21 @@ const App = () => {
              <span className="font-bold text-xl tracking-tight font-heading">SaaSKiller</span>
           </Link>
           <nav className="hidden md:flex gap-6 font-sans">
-            <Link to="/" onClick={handleResetToSearch} className="font-medium text-gray-600 hover:text-brand-secondary">Audit Tool</Link>
-            <Link to="/browse" className="font-medium text-gray-600 hover:text-brand-secondary">Browse Tools</Link>
-            <Link to="/pricing" className="font-medium text-gray-600 hover:text-brand-secondary">Pricing</Link>
+            <Link to="/" onClick={handleResetToSearch} className="font-medium text-gray-600 hover:text-brand-secondary
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                       rounded transition-colors">Audit Tool</Link>
+            <Link to="/browse" className="font-medium text-gray-600 hover:text-brand-secondary
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                       rounded transition-colors">Browse Tools</Link>
+            <Link to="/pricing" className="font-medium text-gray-600 hover:text-brand-secondary
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                       rounded transition-colors">Pricing</Link>
           </nav>
-          <Link to="/" onClick={handleResetToSearch} className="bg-brand-accent text-brand-surface px-4 py-2 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 text-sm font-sans">
+          <Link to="/" onClick={handleResetToSearch} className="bg-brand-accent text-brand-surface px-4 py-2 rounded-lg font-bold
+                     hover:bg-red-600 hover:-translate-y-1
+                     active:translate-y-0 active:scale-95 active:shadow-none
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                     shadow-lg transition-all transform duration-200 text-sm font-sans">
               Get Started
           </Link>
         </header>

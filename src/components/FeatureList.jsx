@@ -64,7 +64,7 @@ const FeatureList = ({
         <h3 className="text-lg font-semibold text-brand-text mb-1">
           {config.title}
         </h3>
-        <p className="text-sm text-gray-600">{config.description}</p>
+        <p className="text-sm text-gray-600 leading-relaxed">{config.description}</p>
         <p className="text-sm text-gray-500 mt-1">
           Showing {visibleFeatures.length} of {features.length} features
         </p>

@@ -176,10 +176,12 @@ const ToolBrowser = () => {
                 {!isAnalyzing && !analyzeError && (
                   <button
                     onClick={handleAnalyzeTool}
-                    className="px-6 py-3 bg-brand-accent text-white rounded-button
-                             hover:bg-red-600 transition-all duration-200
-                             flex items-center gap-2 mx-auto shadow-lg hover:-translate-y-1
-                             font-bold"
+                    className="px-6 py-3 bg-brand-accent text-white rounded-button font-bold
+                             hover:bg-red-600 hover:-translate-y-1
+                             active:translate-y-0 active:scale-95 active:shadow-none
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                             disabled:opacity-50 disabled:cursor-not-allowed
+                             flex items-center gap-2 mx-auto shadow-lg transition-all duration-200"
                   >
                     <Sparkles className="w-5 h-5" />
                     Analyze {searchQuery} with AI

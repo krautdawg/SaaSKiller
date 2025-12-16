@@ -95,7 +95,7 @@ const ToolCard = ({ tool }) => {
       </div>
 
       {/* Short Description */}
-      <p className="text-sm text-gray-600 mb-4 line-clamp-2 min-h-[2.5rem]">
+      <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2 min-h-[3rem]">
         {tool.short_description || tool.description || 'No description available'}
       </p>
 
@@ -107,7 +107,7 @@ const ToolCard = ({ tool }) => {
         </div>
         {bloatyFeatures.length > 0 && (
           <div className="flex items-center gap-1">
-            <span className="font-medium text-gray-400">{bloatyFeatures.length}</span>
+            <span className="font-medium text-gray-500">{bloatyFeatures.length}</span>
             <span>bloat features</span>
           </div>
         )}

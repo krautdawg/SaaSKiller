@@ -21,7 +21,7 @@ const PricingPage = () => {
           <h1 className="text-5xl md:text-6xl font-bold mb-6 font-heading">
             One-Time Fee. <span className="text-brand-secondary">Lifetime Ownership.</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto font-sans">
+          <p className="text-xl text-gray-600 leading-relaxed mb-12 max-w-3xl mx-auto font-sans">
             Custom-built tools that do exactly what you need—nothing more, nothing less.
           </p>
 
@@ -64,7 +64,7 @@ const PricingPage = () => {
                 <div className="text-xs text-red-600 font-sans">Money gone forever.</div>
               </div>
 
-              <div className="text-2xl font-bold text-gray-400 font-heading">vs</div>
+              <div className="text-2xl font-bold text-gray-500 font-heading">vs</div>
 
               <div className="bg-green-50 border-l-4 border-brand-secondary p-6 rounded-lg">
                 <div className="text-sm text-gray-600 mb-2 font-sans">One-Time Build Cost (Example)</div>
@@ -89,7 +89,11 @@ const PricingPage = () => {
 
             <Link
               to="/"
-              className="mt-8 inline-block bg-brand-accent text-white px-8 py-4 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 text-lg font-sans"
+              className="mt-8 inline-block bg-brand-accent text-white px-8 py-4 rounded-lg font-bold
+                       hover:bg-red-600 hover:-translate-y-1
+                       active:translate-y-0 active:scale-95 active:shadow-none
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                       shadow-lg transition-all transform duration-200 text-lg font-sans"
             >
               Start Your Free Audit →
             </Link>
@@ -102,7 +106,7 @@ const PricingPage = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 font-heading">Transparent Pricing</h2>
-            <p className="text-xl text-gray-600 font-sans">
+            <p className="text-xl text-gray-600 leading-relaxed font-sans">
               Estimates based on complexity. Final price locked in after your 1-hour scoping call.
             </p>
           </div>
@@ -200,7 +204,11 @@ const PricingPage = () => {
 
               <Link
                 to="/"
-                className="block w-full text-center bg-brand-accent hover:bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:-translate-y-1 shadow-lg transition-all transform duration-200 font-sans"
+                className="block w-full text-center bg-brand-accent text-white px-6 py-3 rounded-lg font-bold
+                         hover:bg-red-600 hover:-translate-y-1
+                         active:translate-y-0 active:scale-95 active:shadow-none
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                         shadow-lg transition-all transform duration-200 font-sans"
               >
                 Get Free Quote
               </Link>
@@ -263,7 +271,7 @@ const PricingPage = () => {
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 font-heading">How It Works</h2>
-            <p className="text-xl text-gray-600 font-sans">From audit to launch in 4 weeks</p>
+            <p className="text-xl text-gray-600 leading-relaxed font-sans">From audit to launch in 4 weeks</p>
           </div>
 
           <div className="grid md:grid-cols-4 gap-8">
@@ -273,7 +281,7 @@ const PricingPage = () => {
                 1
               </div>
               <h3 className="text-xl font-bold mb-3 font-heading">Free Audit</h3>
-              <p className="text-sm text-gray-600 mb-4 font-sans">
+              <p className="text-sm text-gray-600 leading-relaxed mb-4 font-sans">
                 Search your current tool. We analyze features and show you exactly what you pay for vs. what you use.
               </p>
               <div className="text-xs text-brand-secondary font-bold font-sans">15 minutes</div>
@@ -285,7 +293,7 @@ const PricingPage = () => {
                 2
               </div>
               <h3 className="text-xl font-bold mb-3 font-heading">Scope & Quote</h3>
-              <p className="text-sm text-gray-600 mb-4 font-sans">
+              <p className="text-sm text-gray-600 leading-relaxed mb-4 font-sans">
                 1-hour call to understand your needs. We create a product development document with fixed pricing.
               </p>
               <div className="text-xs text-brand-secondary font-bold font-sans">1 hour + 24hr quote</div>
@@ -297,7 +305,7 @@ const PricingPage = () => {
                 3
               </div>
               <h3 className="text-xl font-bold mb-3 font-heading">Build</h3>
-              <p className="text-sm text-gray-600 mb-4 font-sans">
+              <p className="text-sm text-gray-600 leading-relaxed mb-4 font-sans">
                 Pay 50% to start. We build with AI-assisted development. Weekly check-ins and preview builds.
               </p>
               <div className="text-xs text-brand-secondary font-bold font-sans">3 weeks</div>
@@ -309,7 +317,7 @@ const PricingPage = () => {
                 4
               </div>
               <h3 className="text-xl font-bold mb-3 font-heading">Launch & Own</h3>
-              <p className="text-sm text-gray-600 mb-4 font-sans">
+              <p className="text-sm text-gray-600 leading-relaxed mb-4 font-sans">
                 We deploy to your server. Pay remaining 50%. Full code handoff. 30-day refinement period.
               </p>
               <div className="text-xs text-brand-secondary font-bold font-sans">Instant</div>
@@ -319,7 +327,11 @@ const PricingPage = () => {
           <div className="mt-12 text-center">
             <Link
               to="/"
-              className="inline-block bg-brand-accent text-white px-8 py-4 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 text-lg font-sans"
+              className="inline-block bg-brand-accent text-white px-8 py-4 rounded-lg font-bold
+                       hover:bg-red-600 hover:-translate-y-1
+                       active:translate-y-0 active:scale-95 active:shadow-none
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                       shadow-lg transition-all transform duration-200 text-lg font-sans"
             >
               Start Your Free Audit →
             </Link>
@@ -490,7 +502,7 @@ const PricingPage = () => {
                 How do you build so fast?
                 <ArrowRight className="w-5 h-5 transform group-open:rotate-90 transition-transform" />
               </summary>
-              <p className="mt-4 text-gray-700 font-sans">
+              <p className="mt-4 text-gray-700 leading-relaxed font-sans">
                 We use AI-assisted development (Vibe Coding) that cuts coding time by 75%. What used to take 40 hours now takes 10. This speed lets us offer fixed pricing at a fraction of traditional agency costs.
               </p>
             </details>
@@ -500,7 +512,7 @@ const PricingPage = () => {
                 Who owns the code?
                 <ArrowRight className="w-5 h-5 transform group-open:rotate-90 transition-transform" />
               </summary>
-              <p className="mt-4 text-gray-700 font-sans">
+              <p className="mt-4 text-gray-700 leading-relaxed font-sans">
                 You do. 100%. MIT license. Do whatever you want with it—modify it, sell it, hire any developer to maintain it. No strings attached.
               </p>
             </details>
@@ -510,7 +522,7 @@ const PricingPage = () => {
                 What if I don't like it after a week?
                 <ArrowRight className="w-5 h-5 transform group-open:rotate-90 transition-transform" />
               </summary>
-              <p className="mt-4 text-gray-700 font-sans">
+              <p className="mt-4 text-gray-700 leading-relaxed font-sans">
                 No problem. We offer tweaks and refinements for up to 1 month after delivery. We'll work with you to get it right.
               </p>
             </details>
@@ -520,7 +532,7 @@ const PricingPage = () => {
                 What if I need changes later?
                 <ArrowRight className="w-5 h-5 transform group-open:rotate-90 transition-transform" />
               </summary>
-              <p className="mt-4 text-gray-700 font-sans">
+              <p className="mt-4 text-gray-700 leading-relaxed font-sans">
                 You can hire us at $150/hour or hire any developer—it's your code. We also offer monthly support packages starting at $200/month.
               </p>
             </details>
@@ -530,7 +542,7 @@ const PricingPage = () => {
                 Do you handle hosting?
                 <ArrowRight className="w-5 h-5 transform group-open:rotate-90 transition-transform" />
               </summary>
-              <p className="mt-4 text-gray-700 font-sans">
+              <p className="mt-4 text-gray-700 leading-relaxed font-sans">
                 We deploy to Hetzner Cloud (preferred) or your own server. Hosting costs $5-$100/month depending on usage. First month included free.
               </p>
             </details>
@@ -540,7 +552,7 @@ const PricingPage = () => {
                 What if the build takes longer?
                 <ArrowRight className="w-5 h-5 transform group-open:rotate-90 transition-transform" />
               </summary>
-              <p className="mt-4 text-gray-700 font-sans">
+              <p className="mt-4 text-gray-700 leading-relaxed font-sans">
                 Fixed-price guarantee. If we quoted $3,000, you pay $3,000—even if it takes us longer. That's our risk, not yours.
               </p>
             </details>
@@ -550,7 +562,7 @@ const PricingPage = () => {
                 Can you integrate with other services?
                 <ArrowRight className="w-5 h-5 transform group-open:rotate-90 transition-transform" />
               </summary>
-              <p className="mt-4 text-gray-700 font-sans">
+              <p className="mt-4 text-gray-700 leading-relaxed font-sans">
                 Most integrations are possible (Stripe, APIs, webhooks, etc.). We'll evaluate during the 1-hour scoping call and include in the quote.
               </p>
             </details>
@@ -560,7 +572,7 @@ const PricingPage = () => {
                 How does payment work?
                 <ArrowRight className="w-5 h-5 transform group-open:rotate-90 transition-transform" />
               </summary>
-              <p className="mt-4 text-gray-700 font-sans">
+              <p className="mt-4 text-gray-700 leading-relaxed font-sans">
                 50% down when you approve the quote to start work. 50% on delivery when we hand over the code and deployment.
               </p>
             </details>
@@ -581,7 +593,7 @@ const PricingPage = () => {
                 <Shield className="w-8 h-8 text-white" />
               </div>
               <h3 className="font-bold mb-2 font-heading">Fixed Price Guarantee</h3>
-              <p className="text-sm text-gray-400 font-sans">
+              <p className="text-sm text-gray-600 font-sans leading-relaxed">
                 You'll know the exact cost before we write a single line of code.
               </p>
             </div>
@@ -591,7 +603,7 @@ const PricingPage = () => {
                 <Code className="w-8 h-8 text-white" />
               </div>
               <h3 className="font-bold mb-2 font-heading">Code Ownership</h3>
-              <p className="text-sm text-gray-400 font-sans">
+              <p className="text-sm text-gray-600 font-sans leading-relaxed">
                 MIT license. Your intellectual property. No strings.
               </p>
             </div>
@@ -601,7 +613,7 @@ const PricingPage = () => {
                 <Clock className="w-8 h-8 text-white" />
               </div>
               <h3 className="font-bold mb-2 font-heading">1-Month Refinements</h3>
-              <p className="text-sm text-gray-400 font-sans">
+              <p className="text-sm text-gray-600 font-sans leading-relaxed">
                 Don't like something? We'll tweak it for up to a month after delivery.
               </p>
             </div>
@@ -611,7 +623,7 @@ const PricingPage = () => {
                 <AlertCircle className="w-8 h-8 text-white" />
               </div>
               <h3 className="font-bold mb-2 font-heading">Transparent Process</h3>
-              <p className="text-sm text-gray-400 font-sans">
+              <p className="text-sm text-gray-600 font-sans leading-relaxed">
                 Weekly demos. Direct Slack access. See progress in real-time.
               </p>
             </div>
@@ -625,18 +637,22 @@ const PricingPage = () => {
           <h2 className="text-5xl font-bold mb-6 font-heading">
             Stop Bleeding Cash. <span className="text-brand-error">Start Building Equity.</span>
           </h2>
-          <p className="text-xl text-gray-600 mb-8 font-sans">
+          <p className="text-xl text-gray-600 leading-relaxed mb-8 font-sans">
             Get your free quote. No commitment required.
           </p>
 
           <Link
             to="/"
-            className="inline-block bg-brand-accent text-white px-12 py-5 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-xl transition-all transform duration-200 text-xl font-sans mb-6"
+            className="inline-block bg-brand-accent text-white px-12 py-5 rounded-lg font-bold
+                     hover:bg-red-600 hover:-translate-y-1
+                     active:translate-y-0 active:scale-95 active:shadow-none
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                     shadow-xl transition-all transform duration-200 text-xl font-sans mb-6"
           >
             Start Your Free Audit →
           </Link>
 
-          <p className="text-sm text-gray-500 font-sans">
+          <p className="text-sm text-gray-500 leading-relaxed font-sans">
             Or <Link to="/browse" className="text-brand-secondary hover:underline">browse our library</Link> of 100+ pre-analyzed SaaS tools
           </p>
         </div>

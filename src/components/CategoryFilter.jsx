@@ -105,7 +105,7 @@ const CategoryFilter = () => {
       {/* Active Filter Indicator */}
       {selectedCategory && (
         <div className="mt-4 px-4 py-2 bg-brand-secondary/10 rounded-lg border border-brand-secondary/20">
-          <p className="text-sm text-brand-text">
+          <p className="text-sm text-brand-text leading-relaxed">
             Showing tools in{' '}
             <span className="font-semibold">
               {categories.find(c => c.slug === selectedCategory)?.name}

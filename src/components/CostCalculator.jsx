@@ -79,7 +79,7 @@ const CostCalculator = ({
             Cost Calculator
           </h3>
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 leading-relaxed">
           Calculate your estimated costs
         </p>
       </div>

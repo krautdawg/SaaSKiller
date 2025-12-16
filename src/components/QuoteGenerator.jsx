@@ -26,7 +26,12 @@ const QuoteGenerator = () => {
        </p>
        <button
         onClick={() => setStep('results')}
-        className="w-full text-lg bg-brand-accent text-brand-surface px-6 py-3 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 font-sans"
+        className="w-full text-lg bg-brand-accent text-brand-surface px-6 py-3 rounded-lg font-bold
+                 hover:bg-red-600 hover:-translate-y-1
+                 active:translate-y-0 active:scale-95 active:shadow-none
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                 disabled:opacity-50 disabled:cursor-not-allowed
+                 shadow-lg transition-all transform duration-200 font-sans"
        >
          Kill the Rent. Own the Code.
        </button>
