@@ -16,6 +16,7 @@ import { ExternalLink, Users, DollarSign } from 'lucide-react';
 const ToolCard = ({ tool }) => {
   const navigate = useNavigate();
   const [logoError, setLogoError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   if (!tool) return null;
 
@@ -46,18 +47,25 @@ const ToolCard = ({ tool }) => {
       onClick={handleClick}
       className="bg-white rounded-card border border-gray-200 p-6 cursor-pointer
                  transition-all duration-250 hover:shadow-card-hover hover:-translate-y-1
-                 shadow-card group"
+                 shadow-card group relative overflow-hidden"
     >
+      {/* Gradient Overlay on Hover */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0
+                    group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
       {/* Header: Logo + Name + External Link */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 relative z-10">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Logo */}
-          <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+          <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative">
             {tool.logo_url && !logoError ? (
               <img
                 src={tool.logo_url}
                 alt={`${tool.name} logo`}
-                className="w-full h-full object-contain"
+                loading="lazy"
+                className={`w-full h-full object-contain transition-opacity duration-500
+                          ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                onLoad={() => setImageLoaded(true)}
                 onError={() => setLogoError(true)}
               />
             ) : (
@@ -95,12 +103,12 @@ const ToolCard = ({ tool }) => {
       </div>
 
       {/* Short Description */}
-      <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2 min-h-[3rem]">
+      <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2 min-h-[3rem] relative z-10">
         {tool.short_description || tool.description || 'No description available'}
       </p>
 
       {/* Feature Count */}
-      <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+      <div className="flex items-center gap-4 text-sm text-gray-500 mb-4 relative z-10">
         <div className="flex items-center gap-1">
           <span className="font-medium text-brand-text">{coreFeatures.length}</span>
           <span>core features</span>
@@ -114,7 +122,7 @@ const ToolCard = ({ tool }) => {
       </div>
 
       {/* Pricing Footer */}
-      <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+      <div className="pt-4 border-t border-gray-100 flex items-center justify-between relative z-10">
         {hasPricing ? (
           <>
             <div className="flex items-center gap-2">
@@ -140,9 +148,10 @@ const ToolCard = ({ tool }) => {
 
       {/* Hover Indicator */}
       <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center
-                    opacity-0 group-hover:opacity-100 transition-opacity duration-250">
-        <span className="text-sm font-medium text-brand-secondary">
-          View details →
+                    opacity-0 group-hover:opacity-100 transition-opacity duration-200 relative z-10">
+        <span className="text-sm font-medium text-brand-secondary inline-flex items-center gap-1
+                       group-hover:translate-x-1 transition-transform duration-200">
+          View details <ArrowRight className="w-4 h-4" />
         </span>
       </div>
     </div>

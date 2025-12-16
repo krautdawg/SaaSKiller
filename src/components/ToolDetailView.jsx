@@ -237,6 +237,7 @@ const ToolDetailView = () => {
                   <img
                     src={selectedTool.logo_url}
                     alt={`${selectedTool.name} logo`}
+                    loading="lazy"
                     className="w-full h-full object-contain"
                     onError={() => setLogoError(true)}
                   />

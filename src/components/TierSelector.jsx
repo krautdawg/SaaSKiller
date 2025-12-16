@@ -118,7 +118,7 @@ const TierSelector = ({ tiers = [], selectedTier, onSelectTier }) => {
                   onClick={() => handleSelect(tier)}
                   className={`w-full px-4 py-3 text-left hover:bg-gray-50
                              transition-colors duration-150 flex items-start gap-3
-                             ${isSelected ? 'bg-brand-secondary/5' : ''}`}
+                             ${isSelected ? 'bg-brand-secondary/5 ring-1 ring-brand-secondary/20 shadow-[0_0_10px_rgba(30,168,151,0.15)]' : ''}`}
                 >
                   {/* Checkmark for selected tier */}
                   <div className="flex-shrink-0 w-5 h-5 mt-0.5">

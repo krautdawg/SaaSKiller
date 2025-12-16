@@ -84,7 +84,7 @@ const AuditChecklist = () => {
           <div className="flex justify-between items-center mb-3 border-b pb-2">
             <h3 className="text-lg font-bold font-heading">Bloaty Features</h3>
             <span className="text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-700">
-              {getBloatPercentage()}% Bloat
+              {getBloatPercentage()}% of Bloat Killed
             </span>
           </div>
 

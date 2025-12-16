@@ -58,8 +58,11 @@ const PricingPage = () => {
 
               <div className="bg-red-50 border-l-4 border-brand-error p-6 rounded-lg">
                 <div className="text-sm text-gray-600 mb-2 font-sans">3-Year SaaS Cost (The Bleed)</div>
-                <div className="text-4xl font-bold text-brand-error mb-4 font-mono">
-                  ${threeYearBleed.toLocaleString()}
+                <div className="relative">
+                  <div className="text-4xl font-bold text-brand-error mb-4 font-mono animate-pulse">
+                    ${threeYearBleed.toLocaleString()}
+                  </div>
+                  <div className="absolute inset-0 bg-red-400 blur-xl opacity-20 animate-pulse"></div>
                 </div>
                 <div className="text-xs text-red-600 font-sans">Money gone forever.</div>
               </div>
@@ -87,17 +90,16 @@ const PricingPage = () => {
               )}
             </div>
 
-            <Link
-              to="/"
-              className="mt-8 inline-block bg-brand-accent text-white px-8 py-4 rounded-lg font-bold
-                       hover:bg-red-600 hover:-translate-y-1
-                       active:translate-y-0 active:scale-95 active:shadow-none
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
-                       shadow-lg transition-all transform duration-200 text-lg font-sans"
-            >
-              Start Your Free Audit →
-            </Link>
-          </div>
+                          <Link
+                            to="/"
+                            className="mt-8 inline-block bg-brand-accent text-white px-8 py-4 rounded-lg font-bold
+                                       hover:bg-red-600 hover:-translate-y-1
+                                       active:translate-y-0 active:scale-95 active:shadow-none
+                                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                                       shadow-lg transition-all transform duration-200 text-lg font-sans"
+                          >
+                            Start Your Free Audit →
+                          </Link>          </div>
         </div>
       </section>
 
@@ -113,13 +115,13 @@ const PricingPage = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Starter Tier */}
-            <div className="border-2 border-gray-200 rounded-xl p-8 hover:border-brand-secondary transition-all hover:shadow-xl">
+            <div className="border-2 border-gray-200 rounded-xl p-8 hover:border-brand-secondary hover:shadow-[0_0_30px_rgba(0,0,0,0.1)] transition-all duration-300">
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold mb-2 font-heading">Starter</h3>
                 <div className="text-4xl font-extrabold text-gray-900 mb-2 font-mono">
                   $750 - $2.5K
                 </div>
-                <p className="text-sm text-gray-600 font-sans">One-time payment</p>
+                <p className="text-sm text-gray-600 leading-relaxed font-sans">One-time payment</p>
               </div>
 
               <ul className="space-y-3 mb-8">
@@ -158,7 +160,7 @@ const PricingPage = () => {
             </div>
 
             {/* Professional Tier */}
-            <div className="border-2 border-brand-secondary rounded-xl p-8 relative shadow-xl transform scale-105">
+            <div className="border-2 border-brand-secondary rounded-xl p-8 relative shadow-xl transform scale-105 hover:shadow-[0_0_40px_rgba(30,168,151,0.25)] transition-all duration-300">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-brand-secondary text-white px-4 py-1 rounded-full text-sm font-bold font-sans">
                 MOST POPULAR
               </div>
@@ -215,7 +217,7 @@ const PricingPage = () => {
             </div>
 
             {/* Enterprise Tier */}
-            <div className="border-2 border-gray-200 rounded-xl p-8 hover:border-brand-secondary transition-all hover:shadow-xl">
+            <div className="border-2 border-gray-200 rounded-xl p-8 hover:border-brand-secondary hover:shadow-[0_0_30px_rgba(0,0,0,0.1)] transition-all duration-300">
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold mb-2 font-heading">Enterprise</h3>
                 <div className="text-4xl font-extrabold text-gray-900 mb-2 font-mono">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import useAuditStore from './store/auditStore';
+import logo from './assets/logo.png';
 import ToolSearch from './components/ToolSearch';
 import AuditChecklist from './components/AuditChecklist';
 import BleedCalculator from './components/BleedCalculator';
@@ -18,7 +19,7 @@ const HomePage = () => {
   const { currentStep, selectedTool, calculateBleed, calculateBuildCost, setStep } = useAuditStore();
 
   return (
-    <main className="container mx-auto px-4 py-12 max-w-5xl">
+    <main id="main-content" className="container mx-auto px-4 py-12 max-w-5xl">
 
       {currentStep === 'search' && <ToolSearch />}
 
@@ -41,7 +42,7 @@ const HomePage = () => {
 
       {currentStep === 'results' && (
         <div className="max-w-2xl mx-auto text-center py-12 animate-fade-in">
-           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
+           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl animate-bounce">
              🎉
            </div>
            <h2 className="text-4xl font-bold mb-4 font-heading">Great Choice.</h2>
@@ -58,7 +59,12 @@ const HomePage = () => {
                  <label className="block font-bold text-sm mb-1 font-sans">Email Address</label>
                  <input type="email" className="w-full border p-3 rounded-lg font-sans" placeholder="you@company.com" required />
                </div>
-               <button type="submit" className="w-full bg-brand-accent text-brand-surface px-6 py-3 rounded-lg font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 font-sans">
+               <button type="submit" className="w-full bg-brand-accent text-brand-surface px-6 py-3 rounded-lg font-bold
+                                  hover:bg-red-600 hover:-translate-y-1
+                                  active:translate-y-0 active:scale-95 active:shadow-none
+                                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                                  disabled:opacity-50 disabled:cursor-not-allowed
+                                  shadow-lg transition-all transform duration-200 font-sans">
                  Get My Sovereign Software Quote
                </button>
                <p className="text-xs text-center text-gray-400 mt-4 font-sans">
@@ -94,12 +100,14 @@ const App = () => {
   return (
     <BrowserRouter>
       <div className="min-h-screen font-sans bg-brand-surface text-brand-text">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-brand-accent text-white px-4 py-2 rounded-lg z-50 font-bold shadow-lg">
+          Skip to content
+        </a>
 
         {/* Header */}
         <header className="py-4 px-6 md:px-12 flex justify-between items-center bg-white shadow-sm sticky top-0 z-50">
           <Link to="/" onClick={handleResetToSearch} className="flex items-center gap-2">
-             <div className="w-8 h-8 rounded-full bg-brand-primary"></div>
-             <span className="font-bold text-xl tracking-tight font-heading">SaaSKiller</span>
+             <img src={logo} alt="SaaSKiller" className="h-12 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -195,7 +203,7 @@ const App = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
-        <footer className="py-12 text-center text-gray-500 text-sm border-t mt-20 font-sans">
+        <footer className="py-12 text-center text-gray-700 text-sm border-t mt-20 font-sans">
           <p>&copy; 2025 SaaSKiller. All rights reserved.</p>
           <p className="mt-2">Built with <span className="text-brand-error">♥</span> and Vibe Coding.</p>
         </footer>
