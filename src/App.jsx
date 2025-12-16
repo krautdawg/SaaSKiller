@@ -121,7 +121,7 @@ const App = () => {
                      active:translate-y-0 active:scale-95 active:shadow-none
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                      shadow-lg transition-all transform duration-200 text-sm font-sans">
-              Get Started
+              Kill that SaaS!
           </Link>
 
           {/* Mobile Hamburger Menu Button */}

@@ -5,6 +5,7 @@ const AuditChecklist = () => {
   const { selectedTool, checkedFeatures, toggleFeature, addCustomFeature, getBloatPercentage } = useAuditStore();
   const [newFeatureInput, setNewFeatureInput] = useState('');
   const [showAllCoreFeatures, setShowAllCoreFeatures] = useState(false);
+  const [showAllBloatyFeatures, setShowAllBloatyFeatures] = useState(false);
   const { customFeatures } = useAuditStore();
 
   const handleAddCustom = (e) => {
@@ -24,6 +25,10 @@ const AuditChecklist = () => {
   // Show only top 20 core features by default
   const visibleCoreFeatures = showAllCoreFeatures ? coreFeatures : coreFeatures.slice(0, 20);
   const remainingCoreCount = coreFeatures.length - 20;
+
+  // Show only top 10 bloaty features by default
+  const visibleBloatyFeatures = showAllBloatyFeatures ? bloatyFeatures : bloatyFeatures.slice(0, 10);
+  const remainingBloatyCount = bloatyFeatures.length - 10;
 
   return (
     <div className="space-y-4">
@@ -84,7 +89,7 @@ const AuditChecklist = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {bloatyFeatures.map((feature, idx) => (
+            {visibleBloatyFeatures.map((feature, idx) => (
               <label key={idx} className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer transition-colors group">
                 <input
                   type="checkbox"
@@ -101,6 +106,24 @@ const AuditChecklist = () => {
               </label>
             ))}
           </div>
+
+          {/* Show More Button */}
+          {remainingBloatyCount > 0 && !showAllBloatyFeatures && (
+            <button
+              onClick={() => setShowAllBloatyFeatures(true)}
+              className="mt-4 w-full py-2 text-sm text-brand-secondary hover:text-brand-secondary/80 font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Show {remainingBloatyCount} more bloaty features
+            </button>
+          )}
+          {showAllBloatyFeatures && bloatyFeatures.length > 10 && (
+            <button
+              onClick={() => setShowAllBloatyFeatures(false)}
+              className="mt-4 w-full py-2 text-sm text-gray-600 hover:text-gray-800 font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Show less
+            </button>
+          )}
         </div>
       )}
 

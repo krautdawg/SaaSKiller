@@ -73,6 +73,14 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10kb' })); // Add request size limit
 app.use('/api/', generalLimiter); // Apply general rate limit to all API routes
 
+// Set timeout for all requests to prevent hung connections
+app.use((req, res, next) => {
+  // Set timeout to 60 seconds (15s buffer beyond frontend 45s timeout)
+  req.setTimeout(60000);
+  res.setTimeout(60000);
+  next();
+});
+
 // Database initialization - Auto-create tables on startup
 async function initializeDatabase() {
   const client = await pool.connect();

@@ -70,7 +70,7 @@ export const api = {
             'Content-Type': 'application/json'
           }
         }),
-        20000 // 20 second timeout (includes Perplexity call time)
+        45000 // 45 second timeout - Perplexity analysis can take 30+ seconds for complex tools
       );
 
       if (!response.ok) {
@@ -107,7 +107,7 @@ export const api = {
       let errorType = 'unknown';
 
       if (error.message === 'Request timeout') {
-        errorMessage = 'The search took too long. Please try again.';
+        errorMessage = `Analysis timed out after 45 seconds. Complex tools like "${query}" may take longer. Please try again or use manual entry.`;
         errorType = 'timeout';
       } else if (
         error.message.includes('Failed to fetch') ||
@@ -228,7 +228,7 @@ export const api = {
           },
           body: JSON.stringify({ feature_name: featureName })
         }),
-        15000 // 15 second timeout (Perplexity can be slow)
+        30000 // 30 second timeout - custom features are simpler than full tool analysis
       );
 
       if (!response.ok) {

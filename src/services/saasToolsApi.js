@@ -220,7 +220,7 @@ export const saasToolsApi = {
             'Content-Type': 'application/json'
           }
         }),
-        20000 // 20 second timeout for Perplexity analysis
+        45000 // 45 second timeout - matches main search timeout for consistency
       );
 
       if (!response.ok) {
