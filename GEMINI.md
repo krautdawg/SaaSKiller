@@ -4,64 +4,98 @@
 
 SaaSKiller is a lead-generation tool designed to help small business owners calculate the financial "bleed" from unused SaaS features and offer a "Sovereign Software" alternative (custom-built, one-time fee software).
 
-The application is a **React Single Page Application (SPA)** built with **Vite** and **Tailwind CSS**. It uses **PocketBase** as a backend-as-a-service (BaaS) for data persistence and **Zustand** for client-side state management.
+The application is a **React Single Page Application (SPA)** built with **Vite** and **Tailwind CSS**. 
+
+**Current Status (Dec 2025):** 
+The application has undergone significant UI/UX polish to meet "FANG-level" standards (animations, skeletons, accessibility). The backend has been migrated from PocketBase to a custom **Express.js + PostgreSQL** API to support advanced features like AI-powered tool analysis via Perplexity.
 
 ### Architecture Highlights
 
-*   **Frontend:** React 18 + Vite.
-*   **Styling:** Tailwind CSS with a custom brand configuration (`tailwind.config.js`).
-*   **State Management:** Zustand (`src/store/auditStore.js`) manages the "Audit Session" (wizard steps, selected features, cost calculations).
-*   **Backend:** PocketBase (Self-Hosted/Local).
-    *   **Collections:** `tools` (cached SaaS data), `leads` (user submissions).
-    *   **Logic:** The architecture specifies server-side hooks (`pb_hooks`) to securely call the Perplexity API for analyzing new tools (currently mocked in dev if backend is unreachable).
+*   **Frontend:** React 18 + Vite + Tailwind CSS.
+*   **Styling:** Custom design system (`tailwind.config.js`) with semantic colors and animations.
+*   **State Management:** Zustand (`src/store/auditStore.js`, `src/store/saasToolsStore.js`).
+*   **Backend:** Express.js API (`api/server.js`) connected to a PostgreSQL database.
+    *   **Database:** PostgreSQL (hosted locally or via Supabase/Neon in prod).
+    *   **AI Integration:** Perplexity API for real-time SaaS tool analysis and feature extraction.
+    *   **Security:** Rate limiting, Helmet, CORS configured.
 
 ## Directory Structure
 
-*   **`src/`**: Main source code.
-    *   **`components/`**: Atomic UI components (`ToolSearch`, `AuditChecklist`, `BleedCalculator`, `QuoteGenerator`).
-    *   **`store/`**: Zustand global store and business logic.
-    *   **`services/`**: API abstraction layer (`api.js`).
-    *   **`lib/`**: Configuration and client instances (`pocketbase.js`).
-    *   **`SaaSKillerApp.jsx`**: The original single-file prototype (kept for reference/visual intent).
-*   **`documentation/`**: Project documentation.
-    *   **`architecture-output.md`**: The technical blueprint and source of truth for the system.
-    *   **`design-documentation/`**: Detailed UX/UI specs and style guides.
-    *   **`ProductManager_PRD.md`**: Product requirements.
+*   **`api/`**: Backend API.
+    *   **`server.js`**: Main Express entry point.
+    *   **`db.js`**: PostgreSQL connection pool configuration.
+    *   **`perplexity.js`**: AI analysis service.
+*   **`src/`**: Main frontend source code.
+    *   **`assets/`**: Static assets (images, logo).
+    *   **`components/`**: React components.
+        *   **`ToolSearch.jsx`**: Main entry point with AI analysis trigger.
+        *   **`ToolBrowser.jsx`**: Grid view of tools with skeleton loading.
+        *   **`PricingPage.jsx`**: Marketing page with ROI calculator and animated cards.
+        *   **`ToolDetailView.jsx`**: Detailed tool view with cost calculator.
+    *   **`store/`**: Zustand stores (`auditStore`, `saasToolsStore`).
+    *   **`services/`**: Frontend API clients (`api.js`).
+    *   **`lib/`**: Utilities.
+*   **`documentation/`**: Project documentation (Architecture, PRD, Polish Plans).
 
 ## Building and Running
 
 ### Prerequisites
 *   Node.js (v18+)
-*   PocketBase (running locally at `http://127.0.0.1:8090` or configured via `VITE_POCKETBASE_URL`)
+*   PostgreSQL Database (running locally or cloud)
+*   `PERPLEXITY_API_KEY` (for AI analysis features)
+
+### Environment Setup
+
+1.  **Frontend (.env):**
+    ```env
+    VITE_API_URL=http://localhost:3000
+    ```
+
+2.  **Backend (api/.env):**
+    ```env
+    DATABASE_URL=postgresql://user:password@localhost:5432/saaskiller
+    PERPLEXITY_API_KEY=pplx-...
+    PORT=3000
+    ```
 
 ### Development Commands
 
-1.  **Install Dependencies:**
+1.  **Install Dependencies (Root & API):**
     ```bash
     npm install
+    cd api && npm install
     ```
 
-2.  **Start Development Server:**
+2.  **Start Backend API:**
     ```bash
+    cd api
     npm run dev
     ```
-    This will start the Vite server (usually at `http://localhost:5173`).
+    *Runs on http://localhost:3000*
 
-3.  **Build for Production:**
+3.  **Start Frontend:**
     ```bash
-    npm run build
+    # In a new terminal
+    npm run dev
     ```
+    *Runs on http://localhost:5173*
 
-### PocketBase Setup (Local)
-To fully utilize the app, you need a running PocketBase instance with the following schema:
-*   **Collection `tools`**: `name` (text), `slug` (text), `monthly_cost` (number), `features` (json).
-*   **Collection `leads`**: `email` (email), `tool_name` (text), `team_size` (number), `bleed_amount` (number), `quote_amount` (number).
+## Recent Updates (Polish Phase)
 
-*Note: The `src/services/api.js` file contains a fallback mock mechanism if the backend is unreachable.*
+*   **Visual Polish:**
+    *   Updated Logo and Favicon.
+    *   Added smooth skeleton loading states for tool browsing.
+    *   Implemented lazy loading and fade-in effects for images.
+    *   Added micro-interactions (hover glows, sliding arrows, pulse effects).
+*   **Accessibility:**
+    *   Added "Skip to content" link.
+    *   Improved color contrast in footer and text elements.
+*   **Refactoring:**
+    *   Backend logic split into `db.js` and `perplexity.js` (Work in Progress integration).
 
 ## Development Conventions
 
-*   **Styling:** Use Tailwind utility classes. Avoid inline styles (`style={{}}`).
-*   **State:** Use `useAuditStore` for shared state. Avoid deep prop drilling.
-*   **Components:** Keep components atomic and focused on a single responsibility (Search, Audit, Calc, Quote).
-*   **Colors:** Use the semantic names defined in `tailwind.config.js` (e.g., `bg-brand-primary`, `text-brand-error`) rather than hex codes directly.
+*   **Styling:** Use Tailwind utility classes. Avoid inline styles.
+*   **State:** Use Zustand for global state.
+*   **Components:** Functional, atomic components.
+*   **Backend:** ES Modules (`import/export`).

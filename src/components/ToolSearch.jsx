@@ -13,8 +13,17 @@ const ToolSearch = () => {
     monthly_cost: '',
     features: ''
   });
+  const [validationErrors, setValidationErrors] = useState({
+    name: '',
+    monthly_cost: '',
+    features: ''
+  });
   const { setSelectedTool, setStep } = useAuditStore();
   const loadingIntervalRef = useRef(null);
+
+  const MAX_SEARCH_LENGTH = 50;
+  const MAX_NAME_LENGTH = 100;
+  const MAX_COST = 100000;
 
   const loadingMessages = [
     'Connecting to Wrecking Ball...',
@@ -72,8 +81,65 @@ const ToolSearch = () => {
     handleSearch({ preventDefault: () => {} });
   };
 
+  const validateField = (field, value) => {
+    let errorMsg = '';
+
+    switch (field) {
+      case 'name':
+        if (!value.trim()) {
+          errorMsg = 'Tool name is required';
+        } else if (value.length > MAX_NAME_LENGTH) {
+          errorMsg = `Name must be ${MAX_NAME_LENGTH} characters or less`;
+        }
+        break;
+
+      case 'monthly_cost':
+        const cost = parseFloat(value);
+        if (!value || isNaN(cost)) {
+          errorMsg = 'Monthly cost is required';
+        } else if (cost < 0) {
+          errorMsg = 'Cost must be a positive number';
+        } else if (cost > MAX_COST) {
+          errorMsg = `Cost must be less than $${MAX_COST.toLocaleString()}`;
+        }
+        break;
+
+      case 'features':
+        const featuresArray = value.split('\n').filter(f => f.trim().length > 0);
+        if (featuresArray.length === 0) {
+          errorMsg = 'At least one feature is required';
+        } else if (featuresArray.length > 50) {
+          errorMsg = 'Maximum 50 features allowed';
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    setValidationErrors(prev => ({ ...prev, [field]: errorMsg }));
+    return errorMsg === '';
+  };
+
+  const handleManualDataChange = (field, value) => {
+    setManualData(prev => ({ ...prev, [field]: value }));
+    // Clear validation error when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
   const handleManualEntry = async (e) => {
     e.preventDefault();
+
+    // Validate all fields
+    const isNameValid = validateField('name', manualData.name);
+    const isCostValid = validateField('monthly_cost', manualData.monthly_cost);
+    const isFeaturesValid = validateField('features', manualData.features);
+
+    if (!isNameValid || !isCostValid || !isFeaturesValid) {
+      return;
+    }
 
     try {
       // Parse features from textarea (one per line)
@@ -85,11 +151,6 @@ const ToolSearch = () => {
           name: f,
           type: 'core' // Default to core for manual entry
         }));
-
-      if (featuresArray.length === 0) {
-        alert('Please enter at least one feature');
-        return;
-      }
 
       // Create tool object
       const toolData = {
@@ -111,6 +172,7 @@ const ToolSearch = () => {
       // Reset form
       setShowManualEntry(false);
       setManualData({ name: '', monthly_cost: '', features: '' });
+      setValidationErrors({ name: '', monthly_cost: '', features: '' });
 
     } catch (error) {
       console.error('[ToolSearch] Manual entry error:', error);
@@ -171,15 +233,29 @@ const ToolSearch = () => {
               <h3 className="text-2xl font-bold mb-6 font-heading text-center">Manual Entry</h3>
               <form onSubmit={handleManualEntry} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-bold mb-2 font-sans">Tool Name</label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-bold font-sans">Tool Name</label>
+                    <span className="text-xs text-gray-500 font-sans">
+                      {manualData.name.length}/{MAX_NAME_LENGTH}
+                    </span>
+                  </div>
                   <input
                     type="text"
                     required
+                    maxLength={MAX_NAME_LENGTH}
                     value={manualData.name}
-                    onChange={(e) => setManualData({ ...manualData, name: e.target.value })}
-                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-brand-secondary font-sans"
+                    onChange={(e) => handleManualDataChange('name', e.target.value)}
+                    onBlur={(e) => validateField('name', e.target.value)}
+                    className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none font-sans transition-colors
+                      ${validationErrors.name
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:border-brand-secondary'
+                      }`}
                     placeholder="e.g., Salesforce"
                   />
+                  {validationErrors.name && (
+                    <p className="text-red-500 text-sm mt-1 font-sans">{validationErrors.name}</p>
+                  )}
                 </div>
 
                 <div>
@@ -189,24 +265,47 @@ const ToolSearch = () => {
                     required
                     min="0"
                     step="0.01"
+                    max={MAX_COST}
                     value={manualData.monthly_cost}
-                    onChange={(e) => setManualData({ ...manualData, monthly_cost: e.target.value })}
-                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-brand-secondary font-sans"
+                    onChange={(e) => handleManualDataChange('monthly_cost', e.target.value)}
+                    onBlur={(e) => validateField('monthly_cost', e.target.value)}
+                    className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none font-sans transition-colors
+                      ${validationErrors.monthly_cost
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:border-brand-secondary'
+                      }`}
                     placeholder="e.g., 150"
                   />
+                  {validationErrors.monthly_cost && (
+                    <p className="text-red-500 text-sm mt-1 font-sans">{validationErrors.monthly_cost}</p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold mb-2 font-sans">Features (one per line)</label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-bold font-sans">Features (one per line)</label>
+                    <span className="text-xs text-gray-500 font-sans">
+                      {manualData.features.split('\n').filter(f => f.trim()).length}/50 features
+                    </span>
+                  </div>
                   <textarea
                     required
                     rows="6"
                     value={manualData.features}
-                    onChange={(e) => setManualData({ ...manualData, features: e.target.value })}
-                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-brand-secondary font-sans"
+                    onChange={(e) => handleManualDataChange('features', e.target.value)}
+                    onBlur={(e) => validateField('features', e.target.value)}
+                    className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none font-sans transition-colors
+                      ${validationErrors.features
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:border-brand-secondary'
+                      }`}
                     placeholder="Contact Management&#10;Sales Pipeline&#10;Reporting&#10;Email Integration"
                   />
-                  <p className="text-xs text-gray-500 mt-2 font-sans">Enter each feature on a new line</p>
+                  {validationErrors.features ? (
+                    <p className="text-red-500 text-sm mt-1 font-sans">{validationErrors.features}</p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-2 font-sans">Enter each feature on a new line</p>
+                  )}
                 </div>
 
                 <div className="flex gap-4">
@@ -221,6 +320,7 @@ const ToolSearch = () => {
                     onClick={() => {
                       setShowManualEntry(false);
                       setError(null);
+                      setValidationErrors({ name: '', monthly_cost: '', features: '' });
                     }}
                     className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-full font-bold hover:bg-gray-300 shadow-lg transition-all font-sans"
                   >
@@ -247,25 +347,31 @@ const ToolSearch = () => {
             You're paying for 80% bloat. We build you a custom tool with only the 20% you use. One-time fee. Yours forever.
           </p>
 
-          <div className="max-w-xl mx-auto relative">
-            <form onSubmit={handleSearch}>
+          <div className="max-w-xl mx-auto">
+            <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
                 placeholder="What SaaS are we killing today? (e.g., Salesforce)"
                 className="w-full px-6 py-4 text-lg rounded-full border-2 border-brand-text focus:outline-none shadow-lg focus:border-brand-secondary focus:ring-4 focus:ring-brand-secondary/20 font-sans"
                 value={searchTerm}
+                maxLength={MAX_SEARCH_LENGTH}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <div className="absolute right-2 top-2">
                 <button
                   type="submit"
-                  disabled={!searchTerm}
+                  disabled={!searchTerm.trim()}
                   className="bg-brand-accent text-brand-surface px-6 py-3 rounded-full font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-sans"
                 >
                   Kill It
                 </button>
               </div>
             </form>
+            {searchTerm && (
+              <p className="text-xs text-gray-500 mt-2 text-right font-sans">
+                {searchTerm.length}/{MAX_SEARCH_LENGTH} characters
+              </p>
+            )}
           </div>
         </div>
       ) : (

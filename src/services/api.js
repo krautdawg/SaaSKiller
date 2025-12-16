@@ -15,7 +15,13 @@ const withTimeout = (promise, timeoutMs = 10000) => {
 const validateToolResponse = (tool) => {
   if (!tool) return false;
   if (!tool.name || typeof tool.name !== 'string') return false;
-  if (tool.monthly_cost === undefined || typeof tool.monthly_cost !== 'number') return false;
+
+  // Handle monthly_cost as either string (from PostgreSQL NUMERIC) or number
+  let monthly_cost = tool.monthly_cost;
+  if (typeof monthly_cost === 'string') {
+    monthly_cost = parseFloat(monthly_cost);
+  }
+  if (monthly_cost === undefined || isNaN(monthly_cost)) return false;
 
   // Handle features as either array or JSONB string
   let features = tool.features;
@@ -64,7 +70,7 @@ export const api = {
             'Content-Type': 'application/json'
           }
         }),
-        20000 // 20 second timeout (includes Perplexity call time)
+        45000 // 45 second timeout - Perplexity analysis can take 30+ seconds for complex tools
       );
 
       if (!response.ok) {
@@ -101,7 +107,7 @@ export const api = {
       let errorType = 'unknown';
 
       if (error.message === 'Request timeout') {
-        errorMessage = 'The search took too long. Please try again.';
+        errorMessage = `Analysis timed out after 45 seconds. Complex tools like "${query}" may take longer. Please try again or use manual entry.`;
         errorType = 'timeout';
       } else if (
         error.message.includes('Failed to fetch') ||
@@ -200,6 +206,63 @@ export const api = {
     } catch (error) {
       console.error('[API] Error creating tool:', error);
       throw error;
+    }
+  },
+
+  /**
+   * Analyze a custom feature using Perplexity AI
+   */
+  analyzeCustomFeature: async (featureName) => {
+    try {
+      if (!featureName || !featureName.trim()) {
+        throw new Error('Feature name is required');
+      }
+
+      console.log('[API] Analyzing custom feature:', featureName);
+
+      const response = await withTimeout(
+        fetch(`${API_URL}/api/analyze-custom-feature`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ feature_name: featureName })
+        }),
+        30000 // 30 second timeout - custom features are simpler than full tool analysis
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to analyze feature');
+      }
+
+      const result = await response.json();
+
+      // Backend returns fallback data on error, check for fallback flag
+      if (result.fallback) {
+        console.warn('[API] Using fallback analysis:', result.error_message);
+      } else {
+        console.log('[API] Feature analyzed:', result.complexity, result.estimated_hours + 'h');
+      }
+
+      return {
+        feature_name: result.feature_name,
+        complexity: result.complexity,
+        estimated_hours: result.estimated_hours,
+        isFallback: !!result.fallback
+      };
+
+    } catch (error) {
+      console.error('[API] Error analyzing feature:', error);
+
+      // Client-side fallback if API completely fails
+      return {
+        feature_name: featureName,
+        complexity: 'medium',
+        estimated_hours: 12,
+        isFallback: true,
+        error: error.message
+      };
     }
   }
 };

@@ -219,7 +219,7 @@ const SaaSKillerApp = () => {
           <a href="#" className="font-medium hover:text-[color:var(--secondary)]" style={{ color: COLORS.secondary }}>How it Works</a>
           <a href="#" className="font-medium hover:text-[color:var(--secondary)]" style={{ color: COLORS.secondary }}>Pricing</a>
         </nav>
-        <Button variant="primary" style={{ padding: '8px 16px', fontSize: '14px' }}>Get Started</Button>
+        <Button variant="primary" style={{ padding: '8px 16px', fontSize: '14px' }}>Kill that SaaS!</Button>
       </header>
 
       <main className="container mx-auto px-4 py-12 max-w-5xl">
