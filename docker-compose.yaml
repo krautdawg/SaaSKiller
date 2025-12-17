@@ -27,6 +27,9 @@ services:
       dockerfile: Dockerfile.backend
     container_name: saaskiller-backend
     restart: unless-stopped
+    labels:
+      # Disable Traefik routing for backend (internal-only service)
+      - "traefik.enable=false"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-saaskiller}?sslmode=disable
       PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY:?PERPLEXITY_API_KEY is required}
@@ -56,6 +59,9 @@ services:
         VITE_API_URL: ${VITE_API_URL:-/api}
     container_name: saaskiller-frontend
     restart: unless-stopped
+    labels:
+      # Ensure Traefik routes external traffic to frontend only
+      - "traefik.enable=true"
     expose:
       - "80"
     depends_on:
