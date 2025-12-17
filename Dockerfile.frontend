@@ -3,9 +3,12 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Build argument for API URL - declared early to invalidate cache on change
-ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL}
+# Hardcode empty VITE_API_URL - frontend adds /api prefix in code
+# This prevents any docker-compose or Coolify env var from interfering
+ENV VITE_API_URL=""
+
+# Cache buster - change this line to force rebuild
+# Last updated: 2024-12-17 (commit a408557)
 
 # Copy package files
 COPY package*.json ./

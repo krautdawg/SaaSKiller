@@ -55,8 +55,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-      args:
-        VITE_API_URL: ""
     container_name: saaskiller-frontend
     restart: unless-stopped
     labels:
