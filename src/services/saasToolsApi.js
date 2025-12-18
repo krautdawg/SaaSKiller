@@ -221,7 +221,7 @@ export const saasToolsApi = {
             'Content-Type': 'application/json'
           }
         }),
-        45000 // 45 second timeout - matches main search timeout for consistency
+        60000 // 60 second timeout - matches main search timeout for consistency
       );
 
       if (!response.ok) {

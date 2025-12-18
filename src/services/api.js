@@ -71,7 +71,7 @@ export const api = {
             'Content-Type': 'application/json'
           }
         }),
-        45000 // 45 second timeout - Perplexity analysis can take 30+ seconds for complex tools
+        60000 // 60 second timeout - Perplexity analysis can take longer for complex tools
       );
 
       if (!response.ok) {
@@ -108,7 +108,7 @@ export const api = {
       let errorType = 'unknown';
 
       if (error.message === 'Request timeout') {
-        errorMessage = `Analysis timed out after 45 seconds. Complex tools like "${query}" may take longer. Please try again or use manual entry.`;
+        errorMessage = `Analysis timed out after 60 seconds. Complex tools like "${query}" may take longer. Please try again or use manual entry.`;
         errorType = 'timeout';
       } else if (
         error.message.includes('Failed to fetch') ||
