@@ -1,7 +1,7 @@
 import React from 'react';
 import useAuditStore from '../store/auditStore';
 import { ChevronDown } from 'lucide-react';
-import { formatTierPrice } from '../utils/tierPricing';
+import { formatTierPrice, isEnterpriseTier } from '../utils/tierPricing';
 
 const BleedCalculator = () => {
   const {
@@ -101,10 +101,18 @@ const BleedCalculator = () => {
 
        <div className="py-6 border-t border-b border-red-200 my-6 bg-white rounded-lg">
           <div className="text-sm text-gray-500 mb-1 font-sans">Total Rent Paid to {selectedTool.name}</div>
-          <div className="text-5xl font-extrabold text-brand-error font-heading">
-            ${calculateBleed().toLocaleString()}
-          </div>
-          {isFreeOrFreemium && calculateBleed() === 0 ? (
+          {isEnterpriseTier(selectedTier) ? (
+            <div className="text-5xl font-extrabold text-brand-error font-heading overflow-hidden whitespace-nowrap">
+              {Array(100).fill('$').join('')}
+            </div>
+          ) : (
+            <div className="text-5xl font-extrabold text-brand-error font-heading">
+              ${calculateBleed().toLocaleString()}
+            </div>
+          )}
+          {isEnterpriseTier(selectedTier) ? (
+            <div className="text-xs text-red-400 mt-2 font-medium font-sans">Way too much to count.</div>
+          ) : isFreeOrFreemium && calculateBleed() === 0 ? (
             <div className="text-xs text-amber-600 mt-2 font-medium font-sans">
               FREE tier - Limited features available
             </div>
