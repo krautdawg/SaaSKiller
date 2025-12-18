@@ -17,6 +17,7 @@ const BleedCalculator = () => {
   if (!selectedTool) return null;
 
   const tierName = (selectedTier?.tier_name || selectedTier?.name || '').toLowerCase();
+  const isFreeOrFreemium = tierName.includes('free') || tierName.includes('starter');
   const priceValues = [
     selectedTier?.price_per_user,
     selectedTier?.price_monthly,
@@ -25,7 +26,7 @@ const BleedCalculator = () => {
   const looksMissingPrice = priceValues.every((value) => value == null || Number(value) === 0);
   const priceMissing =
     looksMissingPrice &&
-    !tierName.includes('free') &&
+    !isFreeOrFreemium &&
     (selectedTool.monthly_cost == null || Number(selectedTool.monthly_cost) === 0);
 
   return (
@@ -102,7 +103,13 @@ const BleedCalculator = () => {
           <div className="text-5xl font-extrabold text-brand-error font-heading">
             ${calculateBleed().toLocaleString()}
           </div>
-          <div className="text-xs text-red-400 mt-2 font-medium font-sans">Money gone forever.</div>
+          {isFreeOrFreemium && calculateBleed() === 0 ? (
+            <div className="text-xs text-amber-600 mt-2 font-medium font-sans">
+              FREE tier - Limited features available
+            </div>
+          ) : (
+            <div className="text-xs text-red-400 mt-2 font-medium font-sans">Money gone forever.</div>
+          )}
        </div>
     </div>
   );

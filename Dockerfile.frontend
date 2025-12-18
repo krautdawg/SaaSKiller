@@ -8,7 +8,7 @@ WORKDIR /app
 ENV VITE_API_URL=""
 
 # Cache buster - change this line to force rebuild
-# Last updated: 2024-12-18 (increased API timeout to 60 seconds)
+# Last updated: 2024-12-18 (fixed FREE tier cost calculation)
 
 # Copy package files
 COPY package*.json ./

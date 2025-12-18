@@ -117,13 +117,22 @@ const useAuditStore = create((set, get) => ({
     const { selectedTool, userCount, selectedTier, customPricePerUser } = get();
     if (!selectedTool) return 0;
 
+    // Check if FREE tier is explicitly selected
+    const tierName = (selectedTier?.tier_name || selectedTier?.name || '').toLowerCase();
+    const isFreeOrFreemium = tierName.includes('free') || tierName.includes('starter');
+
     // Use selected tier pricing if available, otherwise fall back to tool's monthly_cost
     let monthlyCostPerUser = 0;
     const manualPrice = parseFloat(customPricePerUser);
     if (!Number.isNaN(manualPrice) && manualPrice > 0) {
       monthlyCostPerUser = manualPrice;
-    } else if (selectedTier && selectedTier.price_per_user) {
-      monthlyCostPerUser = Number(selectedTier.price_per_user) || 0;
+    } else if (selectedTier && selectedTier.price_per_user !== undefined && selectedTier.price_per_user !== null) {
+      // Explicitly check for FREE tier - if tier name says "free", cost is 0
+      if (isFreeOrFreemium && Number(selectedTier.price_per_user) === 0) {
+        monthlyCostPerUser = 0;
+      } else {
+        monthlyCostPerUser = Number(selectedTier.price_per_user) || 0;
+      }
     } else {
       // Fallback to legacy monthly_cost field
       monthlyCostPerUser = Number(selectedTool.monthly_cost) || 0;
