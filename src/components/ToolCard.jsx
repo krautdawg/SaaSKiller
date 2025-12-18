@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ExternalLink, Users, DollarSign, ArrowRight } from 'lucide-react';
+import { formatTierPrice } from '../utils/tierPricing';
 
 /**
  * ToolCard Component
@@ -124,15 +125,11 @@ const ToolCard = ({ tool }) => {
       {/* Pricing Footer */}
       <div className="pt-4 border-t border-gray-100 flex items-center justify-between relative z-10 min-h-[3.5rem]">
         <div className="flex items-center gap-2">
-          {hasPricing && (
+          {firstTier && (
             <>
               <DollarSign className="w-4 h-4 text-brand-secondary" />
               <span className="text-sm font-medium text-brand-text">
-                {firstTier.price_monthly === 0 ? (
-                  'Free tier available'
-                ) : (
-                  `From $${firstTier.price_monthly}/mo`
-                )}
+                From {formatTierPrice(firstTier, 'card')}
               </span>
             </>
           )}

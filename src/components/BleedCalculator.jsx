@@ -1,6 +1,7 @@
 import React from 'react';
 import useAuditStore from '../store/auditStore';
 import { ChevronDown } from 'lucide-react';
+import { formatTierPrice } from '../utils/tierPricing';
 
 const BleedCalculator = () => {
   const {
@@ -63,7 +64,7 @@ const BleedCalculator = () => {
              >
                {selectedTool.subscription_tiers.map((tier, idx) => (
                  <option key={idx} value={tier.name}>
-                   {tier.name} - ${tier.price_per_user}/user/month
+                   {tier.name} - {formatTierPrice(tier, 'dropdown')}
                  </option>
                ))}
              </select>
@@ -71,7 +72,7 @@ const BleedCalculator = () => {
            </div>
            {selectedTier && (
              <div className="text-right text-sm text-gray-600 mt-2 font-sans">
-               ${selectedTier.price_per_user}/user/month
+               {formatTierPrice(selectedTier, 'calculator')}
              </div>
            )}
          </div>

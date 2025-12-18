@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DollarSign, Users, Loader2, TrendingDown } from 'lucide-react';
+import { formatTierPrice } from '../utils/tierPricing';
 
 /**
  * CostCalculator Component
@@ -121,6 +122,9 @@ const CostCalculator = ({
             <div className="text-xs text-gray-500 mb-1">Selected Tier</div>
             <div className="text-sm font-semibold text-brand-text">
               {selectedTier.tier_name}
+            </div>
+            <div className="text-xs text-gray-600 mt-1">
+              {formatTierPrice(selectedTier, 'calculator')}
             </div>
             {selectedTier.price_model && (
               <div className="text-xs text-gray-500 mt-1 capitalize">

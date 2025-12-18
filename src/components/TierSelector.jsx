@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import { formatTierPrice } from '../utils/tierPricing';
 
 /**
  * TierSelector Component
@@ -50,27 +51,7 @@ const TierSelector = ({ tiers = [], selectedTier, onSelectTier }) => {
   };
 
   const formatPrice = (tier) => {
-    if (tier.price_monthly === 0 && tier.price_yearly === 0) {
-      return 'Free';
-    }
-
-    if (tier.price_model === 'custom') {
-      return 'Custom pricing';
-    }
-
-    const monthlyPrice = tier.price_monthly || tier.price_per_user || 0;
-
-    if (!monthlyPrice) {
-      return 'Price missing';
-    }
-
-    const priceText = `$${monthlyPrice}/mo`;
-
-    if (tier.price_model === 'per_seat') {
-      return `${priceText} per user`;
-    }
-
-    return priceText;
+    return formatTierPrice(tier, 'dropdown');
   };
 
   return (
