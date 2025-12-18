@@ -64,9 +64,9 @@ app.use('/api/', generalLimiter); // Apply general rate limit to all API routes
 
 // Set timeout for all requests to prevent hung connections
 app.use((req, res, next) => {
-  // Set timeout to 60 seconds (15s buffer beyond frontend 45s timeout)
-  req.setTimeout(60000);
-  res.setTimeout(60000);
+  // Set timeout to 120 seconds (buffer beyond frontend timeout)
+  req.setTimeout(120000);
+  res.setTimeout(120000);
   next();
 });
 
@@ -433,8 +433,10 @@ app.get('/api/tools/search', aiLimiter, async (req, res) => {
                 json_agg(
                   json_build_object(
                     'id', st.id,
+                    'name', st.tier_name,
                     'tier_name', st.tier_name,
                     'tier_order', st.tier_order,
+                    'price_per_user', st.price_monthly,
                     'price_monthly', st.price_monthly,
                     'price_yearly', st.price_yearly,
                     'price_model', st.price_model,
@@ -585,8 +587,10 @@ app.get('/api/saas-tools', async (req, res) => {
               json_agg(
                 json_build_object(
                   'id', st.id,
+                  'name', st.tier_name,
                   'tier_name', st.tier_name,
                   'tier_order', st.tier_order,
+                  'price_per_user', st.price_monthly,
                   'price_monthly', st.price_monthly,
                   'price_yearly', st.price_yearly,
                   'price_model', st.price_model,
@@ -629,8 +633,10 @@ app.get('/api/saas-tools/:id', async (req, res) => {
               json_agg(
                 json_build_object(
                   'id', st.id,
+                  'name', st.tier_name,
                   'tier_name', st.tier_name,
                   'tier_order', st.tier_order,
+                  'price_per_user', st.price_monthly,
                   'price_monthly', st.price_monthly,
                   'price_yearly', st.price_yearly,
                   'price_model', st.price_model,
