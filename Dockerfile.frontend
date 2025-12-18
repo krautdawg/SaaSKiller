@@ -8,7 +8,7 @@ WORKDIR /app
 ENV VITE_API_URL=""
 
 # Cache buster - change this line to force rebuild
-# Last updated: 2025-12-18 21:48 (Enterprise tier cheeky messages)
+# Last updated: 2025-12-18 21:52 (Enterprise tier dollar signs in BleedCalculator)
 
 # Copy package files
 COPY package*.json ./
