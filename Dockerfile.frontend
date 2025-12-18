@@ -8,7 +8,7 @@ WORKDIR /app
 ENV VITE_API_URL=""
 
 # Cache buster - change this line to force rebuild
-# Last updated: 2024-12-17 (commit a408557)
+# Last updated: 2024-12-17 (commit 450dd1c - fixed nullish coalescing)
 
 # Copy package files
 COPY package*.json ./

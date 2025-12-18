@@ -1,5 +1,6 @@
 // API Base URL - from environment variable or default to localhost
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Use ?? (nullish coalescing) to preserve empty string from production build
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 // Timeout helper - wraps promises with a timeout
 const withTimeout = (promise, timeoutMs = 10000) => {
