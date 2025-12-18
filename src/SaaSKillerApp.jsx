@@ -189,8 +189,47 @@ const SaaSKillerApp = () => {
   return (
     <div className="min-h-screen font-sans" style={{ backgroundColor: COLORS.surface, color: COLORS.text }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Inter:wght@400;600;700&display=swap');
-        
+        /* Self-hosted fonts for GDPR compliance */
+        @font-face {
+          font-family: 'Inter';
+          src: url('/fonts/inter-400.woff2') format('woff2');
+          font-weight: 100 900;
+          font-style: normal;
+          font-display: swap;
+        }
+
+        @font-face {
+          font-family: 'DM Sans';
+          src: url('/fonts/dmsans-400.woff2') format('woff2');
+          font-weight: 400;
+          font-style: normal;
+          font-display: swap;
+        }
+
+        @font-face {
+          font-family: 'DM Sans';
+          src: url('/fonts/dmsans-500.woff2') format('woff2');
+          font-weight: 500;
+          font-style: normal;
+          font-display: swap;
+        }
+
+        @font-face {
+          font-family: 'DM Sans';
+          src: url('/fonts/dmsans-600.woff2') format('woff2');
+          font-weight: 600;
+          font-style: normal;
+          font-display: swap;
+        }
+
+        @font-face {
+          font-family: 'DM Sans';
+          src: url('/fonts/dmsans-700.woff2') format('woff2');
+          font-weight: 700;
+          font-style: normal;
+          font-display: swap;
+        }
+
         body { font-family: ${FONTS.body}; }
         h1, h2, h3, h4 { font-family: ${FONTS.heading}; }
         

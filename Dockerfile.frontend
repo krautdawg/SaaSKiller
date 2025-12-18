@@ -8,7 +8,7 @@ WORKDIR /app
 ENV VITE_API_URL=""
 
 # Cache buster - change this line to force rebuild
-# Last updated: 2024-12-18 (fixed FREE tier cost calculation)
+# Last updated: 2024-12-18 (removed Google Fonts CDN for GDPR compliance)
 
 # Copy package files
 COPY package*.json ./
