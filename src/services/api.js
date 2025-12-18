@@ -71,7 +71,7 @@ export const api = {
             'Content-Type': 'application/json'
           }
         }),
-        60000 // 60 second timeout - Perplexity analysis can take longer for complex tools
+        120000 // 120 second timeout - Perplexity analysis can take longer for complex tools
       );
 
       if (!response.ok) {

@@ -90,19 +90,17 @@ export async function callPerplexityAPI(query) {
 }
 
 CRITICAL RULES:
-1. **Core Features (GET ALL - NO LIMIT):
-   - List EVERY essential feature used by 80%+ of customers
+1. **Core Features (Top 50):
+   - List the top 50 essential features used by 80%+ of customers
    - Include all basic functionality that defines the tool
    - Examples: "Send Messages", "File Sharing", "User Authentication", "Search"
-   - Don't artificially limit - some tools have 8 core features, others have 40+
    - Assign priority 1-100 (lower = more important/commonly used)
    - Priority helps UI show "top 20" but store ALL
 
-2. **Bloaty Features (GET ALL - NO LIMIT):
-   - List EVERY advanced feature rarely used by 80%+ of customers
+2. **Bloaty Features (Top 20):
+   - List the top 20 advanced features rarely used by 80%+ of customers
    - Enterprise-only or niche functionality
    - Examples: "Advanced Security Controls", "Custom Integrations", "White Labeling"
-   - Some tools have 3 bloaty features, others have 20+
    - Assign priority 1-100 (lower = more important among bloat features)
    - Priority helps UI show "top 10" but store ALL
 

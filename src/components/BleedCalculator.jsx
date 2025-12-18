@@ -31,7 +31,7 @@ const BleedCalculator = () => {
 
   return (
     <div className="p-6 rounded-xl border bg-white border-brand-accent shadow-[0_4px_12px_rgba(0,0,0,0.05)] text-center">
-       <h3 className="text-lg font-bold mb-4 uppercase tracking-widest text-gray-500 font-heading">The 3-Year Bleed</h3>
+       <h3 className="text-lg font-bold mb-4 uppercase tracking-widest text-gray-500 font-heading">The <span className="text-brand-error">3-Year</span> Bleed</h3>
        
        <div className="mb-6">
          <label className="block text-sm font-bold mb-2 text-left font-sans">Team Size (Users)</label>

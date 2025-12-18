@@ -122,10 +122,10 @@ const ToolCard = ({ tool }) => {
       </div>
 
       {/* Pricing Footer */}
-      <div className="pt-4 border-t border-gray-100 flex items-center justify-between relative z-10">
-        {hasPricing ? (
-          <>
-            <div className="flex items-center gap-2">
+      <div className="pt-4 border-t border-gray-100 flex items-center justify-between relative z-10 min-h-[3.5rem]">
+        <div className="flex items-center gap-2">
+          {hasPricing && (
+            <>
               <DollarSign className="w-4 h-4 text-brand-secondary" />
               <span className="text-sm font-medium text-brand-text">
                 {firstTier.price_monthly === 0 ? (
@@ -134,23 +134,12 @@ const ToolCard = ({ tool }) => {
                   `From $${firstTier.price_monthly}/mo`
                 )}
               </span>
-            </div>
-            {tool.subscription_tiers && tool.subscription_tiers.length > 1 && (
-              <span className="text-xs text-gray-500">
-                {tool.subscription_tiers.length} tiers
-              </span>
-            )}
-          </>
-        ) : (
-          <span className="text-sm text-gray-500">Custom pricing</span>
-        )}
-      </div>
+            </>
+          )}
+        </div>
 
-      {/* Hover Indicator */}
-      <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center
-                    opacity-0 group-hover:opacity-100 transition-opacity duration-200 relative z-10">
         <span className="text-sm font-medium text-brand-secondary inline-flex items-center gap-1
-                       group-hover:translate-x-1 transition-transform duration-200">
+                       opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           View details <ArrowRight className="w-4 h-4" />
         </span>
       </div>
