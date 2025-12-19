@@ -181,7 +181,8 @@ CREATE TABLE IF NOT EXISTS audit_reports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- User identification
-  email VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL
+    CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
 
   -- Audit context
   tool_id INTEGER REFERENCES tools(id) ON DELETE SET NULL,
@@ -190,39 +191,47 @@ CREATE TABLE IF NOT EXISTS audit_reports (
   tier_name VARCHAR(100),
 
   -- Audit selections
-  team_size INTEGER NOT NULL DEFAULT 1,
+  team_size INTEGER NOT NULL DEFAULT 1
+    CHECK (team_size > 0 AND team_size <= 10000),
   features_kept JSONB NOT NULL DEFAULT '[]'::jsonb,
   features_removed JSONB NOT NULL DEFAULT '[]'::jsonb,
   custom_features JSONB NOT NULL DEFAULT '[]'::jsonb,
 
   -- Financial calculations
-  bleed_amount NUMERIC(10,2) NOT NULL, -- 3-year cost
-  build_cost_min NUMERIC(10,2) NOT NULL,
-  build_cost_max NUMERIC(10,2) NOT NULL,
+  bleed_amount NUMERIC(10,2) NOT NULL
+    CHECK (bleed_amount >= 0),
+  build_cost_min NUMERIC(10,2) NOT NULL
+    CHECK (build_cost_min >= 0),
+  build_cost_max NUMERIC(10,2) NOT NULL
+    CHECK (build_cost_max >= 0),
   savings_amount NUMERIC(10,2) NOT NULL,
-  roi_months INTEGER,
+  roi_months INTEGER
+    CHECK (roi_months IS NULL OR roi_months > 0),
 
   -- Email delivery tracking
   email_sent_at TIMESTAMP,
-  email_message_id VARCHAR(255), -- Nodemailer messageId
+  email_message_id VARCHAR(255),
   provider_email_sent_at TIMESTAMP,
   provider_message_id VARCHAR(255),
-  status VARCHAR(50) NOT NULL DEFAULT 'pending', -- pending, sent, failed, bounced
+  status VARCHAR(50) NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'queued', 'processing', 'sent', 'failed', 'bounced')),
   error_message TEXT,
+  error_details JSONB, -- Structured error info (code, stack, type)
 
   -- PDF metadata
-  pdf_file_path TEXT, -- If storing PDFs on disk/S3
-  pdf_size_bytes INTEGER,
+  pdf_file_path TEXT,
+  pdf_size_bytes INTEGER
+    CHECK (pdf_size_bytes IS NULL OR pdf_size_bytes > 0),
 
   -- Timestamps
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-  -- Indexes for common queries
-  INDEX idx_audit_reports_email (email),
-  INDEX idx_audit_reports_created_at (created_at DESC),
-  INDEX idx_audit_reports_status (status),
-  INDEX idx_audit_reports_tool_id (tool_id)
+  -- Business constraints
+  CONSTRAINT build_cost_range CHECK (build_cost_min <= build_cost_max),
+
+  -- Prevent duplicate submissions (same email, same tool, within 1 hour)
+  CONSTRAINT unique_recent_submission UNIQUE (email, tool_id, date_trunc('hour', created_at))
 );
 
 -- Trigger for updated_at
@@ -245,42 +254,60 @@ CREATE TRIGGER audit_reports_updated_at
 ```javascript
 // Add after existing table creations (after subscription_tiers, around line 150)
 
-// Create audit_reports table
+// Create audit_reports table with validation constraints
 await pool.query(`
   CREATE TABLE IF NOT EXISTS audit_reports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL
+      CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'),
     tool_id INTEGER REFERENCES tools(id) ON DELETE SET NULL,
     tool_name VARCHAR(255) NOT NULL,
     tier_id INTEGER REFERENCES subscription_tiers(id) ON DELETE SET NULL,
     tier_name VARCHAR(100),
-    team_size INTEGER NOT NULL DEFAULT 1,
+    team_size INTEGER NOT NULL DEFAULT 1
+      CHECK (team_size > 0 AND team_size <= 10000),
     features_kept JSONB NOT NULL DEFAULT '[]'::jsonb,
     features_removed JSONB NOT NULL DEFAULT '[]'::jsonb,
     custom_features JSONB NOT NULL DEFAULT '[]'::jsonb,
-    bleed_amount NUMERIC(10,2) NOT NULL,
-    build_cost_min NUMERIC(10,2) NOT NULL,
-    build_cost_max NUMERIC(10,2) NOT NULL,
+    bleed_amount NUMERIC(10,2) NOT NULL
+      CHECK (bleed_amount >= 0),
+    build_cost_min NUMERIC(10,2) NOT NULL
+      CHECK (build_cost_min >= 0),
+    build_cost_max NUMERIC(10,2) NOT NULL
+      CHECK (build_cost_max >= 0),
     savings_amount NUMERIC(10,2) NOT NULL,
-    roi_months INTEGER,
+    roi_months INTEGER
+      CHECK (roi_months IS NULL OR roi_months > 0),
     email_sent_at TIMESTAMP,
     email_message_id VARCHAR(255),
     provider_email_sent_at TIMESTAMP,
     provider_message_id VARCHAR(255),
-    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    status VARCHAR(50) NOT NULL DEFAULT 'pending'
+      CHECK (status IN ('pending', 'queued', 'processing', 'sent', 'failed', 'bounced')),
     error_message TEXT,
+    error_details JSONB,
     pdf_file_path TEXT,
-    pdf_size_bytes INTEGER,
+    pdf_size_bytes INTEGER
+      CHECK (pdf_size_bytes IS NULL OR pdf_size_bytes > 0),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT build_cost_range CHECK (build_cost_min <= build_cost_max),
+    CONSTRAINT unique_recent_submission UNIQUE (email, tool_id, date_trunc('hour', created_at))
   )
 `);
 
-// Create indexes
+// Create optimized composite index for queue worker queries
+// Query pattern: "SELECT * FROM audit_reports WHERE status = 'queued' ORDER BY created_at LIMIT 10"
+await pool.query(`
+  CREATE INDEX IF NOT EXISTS idx_audit_reports_status_created
+    ON audit_reports(status, created_at DESC)
+    WHERE status IN ('queued', 'processing', 'failed');
+`);
+
+// Optional: Index for admin/debugging queries by email
+// Only create if you actually need to query "show me all audits for user@example.com"
 await pool.query(`
   CREATE INDEX IF NOT EXISTS idx_audit_reports_email ON audit_reports(email);
-  CREATE INDEX IF NOT EXISTS idx_audit_reports_created_at ON audit_reports(created_at DESC);
-  CREATE INDEX IF NOT EXISTS idx_audit_reports_status ON audit_reports(status);
 `);
 ```
 
@@ -318,11 +345,12 @@ await pool.query(`
 **Step 1.1: Install Dependencies**
 ```bash
 cd /home/tim/Desktop/saaskiller/api
-npm install nodemailer@^6.9.0 pdfkit@^0.15.0 handlebars@^4.7.8 bull@^4.12.0 ioredis@^5.3.2
+npm install nodemailer@^6.9.0 pdfkit@^0.15.0 handlebars@^4.7.8 bull@^4.12.0 ioredis@^5.3.2 zod@^3.22.0
 ```
 
 **Key Dependencies:**
 - `nodemailer` - Email sending
+- `zod` - Runtime type validation and schema parsing
 - `pdfkit` - PDF generation
 - `handlebars` - Email templating
 - `bull` - Job queue management (NEW - Phase 1 requirement)
@@ -358,6 +386,12 @@ REDIS_DB=0
 QUEUE_NAME=email-reports
 QUEUE_ATTEMPTS=3
 QUEUE_BACKOFF_DELAY=2000
+QUEUE_JOB_TIMEOUT=120000            # 2 minutes max per job
+QUEUE_STALLED_INTERVAL=30000        # Check for stalled jobs every 30s
+QUEUE_MAX_STALLED=2                 # Fail after 2 stalled attempts
+QUEUE_COMPLETE_AGE=86400            # Keep completed jobs for 24 hours
+QUEUE_COMPLETE_COUNT=1000           # Keep last 1000 completed jobs
+QUEUE_FAIL_AGE=604800               # Keep failed jobs for 7 days
 ```
 
 **Step 1.3: Redis Setup in Coolify**
@@ -466,8 +500,27 @@ export const emailQueue = new Queue(
         type: 'exponential',
         delay: parseInt(process.env.QUEUE_BACKOFF_DELAY || '2000')
       },
-      removeOnComplete: true,
-      removeOnFail: false
+      // Job timeout: 2 minutes max (PDF generation + email should be < 30 seconds)
+      timeout: parseInt(process.env.QUEUE_JOB_TIMEOUT || '120000'),
+      // Keep completed jobs for debugging (24 hours or last 1000 jobs)
+      removeOnComplete: {
+        age: parseInt(process.env.QUEUE_COMPLETE_AGE || '86400'), // 24 hours in seconds
+        count: parseInt(process.env.QUEUE_COMPLETE_COUNT || '1000')
+      },
+      // Keep failed jobs for investigation (7 days)
+      removeOnFail: {
+        age: parseInt(process.env.QUEUE_FAIL_AGE || '604800') // 7 days in seconds
+      }
+    },
+    settings: {
+      // Check for stalled jobs every 30 seconds
+      stalledInterval: parseInt(process.env.QUEUE_STALLED_INTERVAL || '30000'),
+      // Mark job as stalled after 2 attempts
+      maxStalledCount: parseInt(process.env.QUEUE_MAX_STALLED || '2'),
+      // Limit concurrent job processing to prevent memory issues
+      // (10 concurrent PDFs = ~500MB memory usage)
+      lockDuration: 120000, // Lock duration matches job timeout
+      lockRenewTime: 60000 // Renew lock every minute
     }
   }
 );
@@ -612,20 +665,76 @@ emailQueue.process(async (job) => {
     };
 
   } catch (error) {
-    console.error(`❌ Email job failed for report ${reportId}:`, error);
+    // Capture comprehensive error details
+    const errorDetails = {
+      message: error.message || 'Unknown error',
+      stack: error.stack,
+      code: error.code,
+      type: error.constructor.name,
+      timestamp: new Date().toISOString()
+    };
 
-    // Update database with failed status
-    await pool.query(`
-      UPDATE audit_reports
-      SET status = 'failed',
-          error_message = $1
-      WHERE id = $2
-    `, [error.message, reportId]);
+    console.error(`❌ Email job failed for report ${reportId}:`, errorDetails);
 
-    // Throw error to trigger Bull retry
-    throw error;
+    // Determine if error is transient (should retry) or permanent (don't retry)
+    const isTransient = isTransientError(error);
+
+    // Update database with failed status (wrapped in try-catch to avoid masking original error)
+    try {
+      await pool.query(`
+        UPDATE audit_reports
+        SET status = $1,
+            error_message = $2,
+            error_details = $3::jsonb
+        WHERE id = $4
+      `, [
+        isTransient ? 'failed' : 'permanent_failure',
+        errorDetails.message.substring(0, 500), // Truncate for TEXT field
+        JSON.stringify(errorDetails),
+        reportId
+      ]);
+    } catch (dbError) {
+      console.error(`❌ Failed to update error status for ${reportId}:`, dbError);
+      // Don't throw - job already failed, avoid masking original error
+    }
+
+    // Only retry on transient errors (network issues, temporary SMTP failures)
+    // Permanent errors (invalid email, malformed PDF data) should not retry
+    if (isTransient) {
+      throw error; // Trigger Bull retry with exponential backoff
+    } else {
+      // Mark as permanently failed, don't retry
+      console.error(`🚫 Permanent failure detected, not retrying: ${errorDetails.type}`);
+      return { success: false, permanentFailure: true, error: errorDetails };
+    }
   }
 });
+
+/**
+ * Determine if an error is transient (should retry) or permanent (should not retry)
+ */
+function isTransientError(error) {
+  // Network/connection errors (transient - should retry)
+  if (error.code === 'ECONNREFUSED') return true;
+  if (error.code === 'ENOTFOUND') return true;
+  if (error.code === 'ETIMEDOUT') return true;
+  if (error.code === 'ECONNRESET') return true;
+  if (error.message?.includes('timeout')) return true;
+  if (error.message?.includes('Connection closed')) return true;
+
+  // SMTP errors (check if transient)
+  if (error.responseCode) {
+    // 4xx = temporary failure, 5xx = permanent failure
+    return error.responseCode >= 400 && error.responseCode < 500;
+  }
+
+  // PDF generation errors (permanent - bad data)
+  if (error.message?.includes('Invalid audit data')) return false;
+  if (error.message?.includes('PDF generation failed')) return false;
+
+  // Default: treat as transient (safer to retry)
+  return true;
+}
 
 console.log('🔄 Email worker started and listening for jobs...');
 
@@ -1209,6 +1318,87 @@ import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 
+// Zod validation schema for audit report data
+import { z } from 'zod';
+
+const FeatureSchema = z.object({
+  name: z.string().min(1, 'Feature name required'),
+  complexity: z.enum(['simple', 'medium', 'complex']).optional()
+});
+
+const CustomFeatureSchema = z.object({
+  name: z.string().min(1, 'Custom feature name required'),
+  complexity: z.enum(['simple', 'medium', 'complex']),
+  estimated_hours: z.number().positive('Estimated hours must be positive')
+});
+
+const AuditReportSchema = z.object({
+  email: z.string()
+    .email('Invalid email format')
+    .max(255, 'Email too long'),
+
+  toolId: z.number()
+    .int('Tool ID must be integer')
+    .positive('Tool ID must be positive')
+    .optional()
+    .nullable(),
+
+  toolName: z.string()
+    .min(1, 'Tool name required')
+    .max(255, 'Tool name too long'),
+
+  tierId: z.number()
+    .int('Tier ID must be integer')
+    .positive('Tier ID must be positive')
+    .optional()
+    .nullable(),
+
+  tierName: z.string()
+    .max(100, 'Tier name too long')
+    .optional()
+    .nullable(),
+
+  teamSize: z.number()
+    .int('Team size must be integer')
+    .min(1, 'Team size must be at least 1')
+    .max(10000, 'Team size cannot exceed 10,000'),
+
+  featuresKept: z.array(FeatureSchema)
+    .optional()
+    .default([]),
+
+  featuresRemoved: z.array(FeatureSchema)
+    .optional()
+    .default([]),
+
+  customFeatures: z.array(CustomFeatureSchema)
+    .optional()
+    .default([]),
+
+  bleedAmount: z.number()
+    .nonnegative('Bleed amount cannot be negative'),
+
+  buildCostMin: z.number()
+    .nonnegative('Build cost min cannot be negative'),
+
+  buildCostMax: z.number()
+    .nonnegative('Build cost max cannot be negative'),
+
+  savingsAmount: z.number(),
+
+  roiMonths: z.number()
+    .int('ROI months must be integer')
+    .positive('ROI months must be positive')
+    .optional()
+    .nullable()
+}).refine(
+  (data) => data.buildCostMin <= data.buildCostMax,
+  {
+    message: 'Build cost min must be less than or equal to build cost max',
+    path: ['buildCostMax']
+  }
+);
+
 // Rate limiter (3 requests per hour per IP)
 const auditReportLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -1226,6 +1416,20 @@ router.post('/', auditReportLimiter, async (req, res) => {
   const startTime = Date.now();
 
   try {
+    // Validate request body with Zod
+    const validationResult = AuditReportSchema.safeParse(req.body);
+
+    if (!validationResult.success) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: validationResult.error.errors.map(err => ({
+          field: err.path.join('.'),
+          message: err.message
+        }))
+      });
+    }
+
+    // Extract validated data
     const {
       email,
       toolId,
@@ -1241,23 +1445,7 @@ router.post('/', auditReportLimiter, async (req, res) => {
       buildCostMax,
       savingsAmount,
       roiMonths
-    } = req.body;
-
-    // Validation
-    if (!email || !toolName || !teamSize || bleedAmount === undefined) {
-      return res.status(400).json({
-        error: 'Missing required fields',
-        required: ['email', 'toolName', 'teamSize', 'bleedAmount']
-      });
-    }
-
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        error: 'Invalid email format'
-      });
-    }
+    } = validationResult.data;
 
     console.log(`📧 Queuing audit report for ${email} (${toolName})`);
 
@@ -1780,51 +1968,317 @@ Update `/home/tim/Desktop/saaskiller/src/App.jsx` (lines 43-82):
 
 ## Testing Strategy
 
-### Unit Tests (Optional for MVP)
+**⚠️ CRITICAL: Tests are NOT optional. Email delivery fails silently - tests are essential.**
+
+### Test Setup
+
+```bash
+# Install test dependencies
+npm install --save-dev jest@^29.7.0 supertest@^6.3.0 @types/jest@^29.5.0
+
+# Create jest.config.js
+cat > jest.config.js << 'EOF'
+export default {
+  testEnvironment: 'node',
+  transform: {},
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1'
+  },
+  testMatch: ['**/tests/**/*.test.js'],
+  collectCoverageFrom: [
+    'api/services/**/*.js',
+    'api/workers/**/*.js',
+    'api/routes/**/*.js'
+  ]
+};
+EOF
+```
+
+### Unit Tests
 
 ```javascript
-// /home/tim/Desktop/saaskiller/api/tests/pdfService.test.js
-import { generateAuditReportPDF } from '../services/pdfService.js';
+// api/tests/unit/pdfService.test.js
+import { generateAuditReportPDF } from '../../services/pdfService.js';
 
-test('generates PDF from audit data', async () => {
-  const auditData = {
+describe('PDF Service', () => {
+  test('generates valid PDF buffer', async () => {
+    const auditData = validAuditData();
+    const pdfBuffer = await generateAuditReportPDF(auditData);
+
+    expect(pdfBuffer).toBeInstanceOf(Buffer);
+    expect(pdfBuffer.length).toBeGreaterThan(1000);
+    expect(pdfBuffer.length).toBeLessThan(10 * 1024 * 1024); // < 10MB
+  });
+
+  test('rejects invalid audit data', async () => {
+    await expect(generateAuditReportPDF({})).rejects.toThrow('Invalid audit data');
+  });
+
+  test('handles missing optional fields', async () => {
+    const minimalData = {
+      toolName: 'Test',
+      teamSize: 1,
+      featuresKept: [],
+      featuresRemoved: [],
+      customFeatures: [],
+      bleedAmount: 1000,
+      buildCostMin: 500,
+      buildCostMax: 1000,
+      savingsAmount: 500
+    };
+
+    const pdfBuffer = await generateAuditReportPDF(minimalData);
+    expect(pdfBuffer).toBeInstanceOf(Buffer);
+  });
+});
+
+// api/tests/unit/validation.test.js
+import { AuditReportSchema } from '../../routes/auditReports.js';
+
+describe('Request Validation', () => {
+  test('accepts valid audit data', () => {
+    const result = AuditReportSchema.safeParse(validAuditData());
+    expect(result.success).toBe(true);
+  });
+
+  test('rejects invalid email', () => {
+    const data = { ...validAuditData(), email: 'not-an-email' };
+    const result = AuditReportSchema.safeParse(data);
+    expect(result.success).toBe(false);
+    expect(result.error.errors[0].path).toContain('email');
+  });
+
+  test('rejects negative team size', () => {
+    const data = { ...validAuditData(), teamSize: -5 };
+    const result = AuditReportSchema.safeParse(data);
+    expect(result.success).toBe(false);
+  });
+
+  test('rejects buildCostMin > buildCostMax', () => {
+    const data = { ...validAuditData(), buildCostMin: 1000, buildCostMax: 500 };
+    const result = AuditReportSchema.safeParse(data);
+    expect(result.success).toBe(false);
+  });
+});
+```
+
+### Integration Tests (CRITICAL)
+
+```javascript
+// api/tests/integration/emailFlow.test.js
+import request from 'supertest';
+import app from '../../server.js';
+import { emailQueue } from '../../services/queueService.js';
+import pool from '../../db.js';
+
+describe('Email Audit Report Flow', () => {
+  beforeEach(async () => {
+    await clearQueue();
+    await clearTestData();
+  });
+
+  test('end-to-end: submit audit → queue → worker → email sent', async () => {
+    const auditData = validAuditData();
+
+    // Step 1: Submit audit via API
+    const response = await request(app)
+      .post('/api/audit-reports')
+      .send(auditData)
+      .expect(200);
+
+    expect(response.body.success).toBe(true);
+    expect(response.body.status).toBe('queued');
+    const { reportId, jobId } = response.body;
+
+    // Step 2: Verify DB record created
+    const dbResult = await pool.query('SELECT * FROM audit_reports WHERE id = $1', [reportId]);
+    expect(dbResult.rows[0].status).toBe('queued');
+    expect(dbResult.rows[0].email).toBe(auditData.email);
+
+    // Step 3: Wait for worker to process job
+    await waitForJobCompletion(jobId, 30000); // 30s timeout
+
+    // Step 4: Verify DB updated to 'sent'
+    const updatedResult = await pool.query('SELECT * FROM audit_reports WHERE id = $1', [reportId]);
+    expect(updatedResult.rows[0].status).toBe('sent');
+    expect(updatedResult.rows[0].email_message_id).toBeDefined();
+
+    // Step 5: Verify emails sent (using test SMTP)
+    const sentEmails = await getTestEmails();
+    expect(sentEmails).toHaveLength(2); // User + provider
+    expect(sentEmails[0].to).toBe(auditData.email);
+    expect(sentEmails[1].to).toBe(process.env.PROVIDER_EMAIL);
+  });
+
+  test('handles SMTP failure with retry', async () => {
+    // Mock SMTP to fail twice, then succeed
+    mockSMTP.failNextCalls(2);
+
+    const response = await request(app)
+      .post('/api/audit-reports')
+      .send(validAuditData())
+      .expect(200);
+
+    await waitForJobCompletion(response.body.jobId);
+
+    // Should succeed on 3rd attempt
+    expect(mockSMTP.callCount).toBe(3);
+    const dbResult = await pool.query('SELECT status FROM audit_reports WHERE id = $1', [response.body.reportId]);
+    expect(dbResult.rows[0].status).toBe('sent');
+  });
+
+  test('handles permanent SMTP failure', async () => {
+    // Mock SMTP to return 5xx (permanent failure)
+    mockSMTP.alwaysFail(550, 'Invalid recipient');
+
+    const response = await request(app)
+      .post('/api/audit-reports')
+      .send(validAuditData())
+      .expect(200);
+
+    await waitForJobCompletion(response.body.jobId);
+
+    // Should NOT retry (permanent failure)
+    expect(mockSMTP.callCount).toBe(1);
+    const dbResult = await pool.query('SELECT status, error_message FROM audit_reports WHERE id = $1', [response.body.reportId]);
+    expect(dbResult.rows[0].status).toBe('permanent_failure');
+  });
+
+  test('handles worker crash mid-processing', async () => {
+    const response = await request(app)
+      .post('/api/audit-reports')
+      .send(validAuditData())
+      .expect(200);
+
+    // Simulate worker crash
+    await killWorker();
+    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5s
+
+    // Restart worker
+    await startWorker();
+
+    // Job should be marked stalled and retried
+    await waitForJobCompletion(response.body.jobId);
+
+    const dbResult = await pool.query('SELECT status FROM audit_reports WHERE id = $1', [response.body.reportId]);
+    expect(dbResult.rows[0].status).toBe('sent');
+  });
+
+  test('prevents duplicate submissions within 1 hour', async () => {
+    const auditData = validAuditData();
+
+    // First submission
+    await request(app).post('/api/audit-reports').send(auditData).expect(200);
+
+    // Second submission (same email, same tool, within 1 hour)
+    const response = await request(app)
+      .post('/api/audit-reports')
+      .send(auditData)
+      .expect(400);
+
+    expect(response.body.error).toContain('duplicate');
+  });
+});
+
+// api/tests/integration/rateLimiting.test.js
+describe('Rate Limiting', () => {
+  test('allows 3 requests per hour per IP', async () => {
+    const auditData = validAuditData();
+
+    // Requests 1-3 should succeed
+    await request(app).post('/api/audit-reports').send(auditData).expect(200);
+    await request(app).post('/api/audit-reports').send({ ...auditData, email: 'test2@example.com' }).expect(200);
+    await request(app).post('/api/audit-reports').send({ ...auditData, email: 'test3@example.com' }).expect(200);
+
+    // 4th request should be rate-limited
+    await request(app).post('/api/audit-reports').send({ ...auditData, email: 'test4@example.com' }).expect(429);
+  });
+});
+```
+
+### Edge Case Tests
+
+```javascript
+// api/tests/edge-cases/edgeCases.test.js
+describe('Edge Cases', () => {
+  test('handles extremely large team size (10,000 users)', async () => {
+    const data = { ...validAuditData(), teamSize: 10000 };
+    const response = await request(app).post('/api/audit-reports').send(data).expect(200);
+    await waitForJobCompletion(response.body.jobId);
+    // Should complete without memory issues
+  });
+
+  test('handles PDF generation timeout', async () => {
+    // Mock PDF service to hang
+    mockPDFService.timeout(150000); // Exceeds 120s job timeout
+
+    const response = await request(app).post('/api/audit-reports').send(validAuditData()).expect(200);
+    await waitForJobCompletion(response.body.jobId);
+
+    const dbResult = await pool.query('SELECT status FROM audit_reports WHERE id = $1', [response.body.reportId]);
+    expect(dbResult.rows[0].status).toBe('failed');
+  });
+
+  test('handles Redis connection loss during queue', async () => {
+    // Disconnect Redis
+    await redisClient.disconnect();
+
+    // Should fail gracefully
+    const response = await request(app)
+      .post('/api/audit-reports')
+      .send(validAuditData())
+      .expect(500);
+
+    expect(response.body.error).toContain('queue unavailable');
+
+    // Reconnect Redis
+    await redisClient.connect();
+  });
+});
+```
+
+### Test Helpers
+
+```javascript
+// api/tests/helpers/testHelpers.js
+export function validAuditData() {
+  return {
+    email: 'test@example.com',
+    toolId: 1,
     toolName: 'Slack',
+    tierId: 2,
     tierName: 'Pro',
     teamSize: 10,
-    featuresKept: [{ name: 'Messaging' }],
-    featuresRemoved: [{ name: 'Canvas' }],
+    featuresKept: [{ name: 'Messaging', complexity: 'simple' }],
+    featuresRemoved: [{ name: 'Canvas', complexity: 'medium' }],
     customFeatures: [],
     bleedAmount: 36000,
     buildCostMin: 5000,
     buildCostMax: 8000,
-    savingsAmount: 29500
+    savingsAmount: 29500,
+    roiMonths: 10
   };
+}
 
-  const pdfBuffer = await generateAuditReportPDF(auditData);
-
-  expect(pdfBuffer).toBeInstanceOf(Buffer);
-  expect(pdfBuffer.length).toBeGreaterThan(1000); // Reasonable PDF size
-});
+export async function waitForJobCompletion(jobId, timeout = 30000) {
+  const startTime = Date.now();
+  while (Date.now() - startTime < timeout) {
+    const job = await emailQueue.getJob(jobId);
+    if (await job.isCompleted() || await job.isFailed()) {
+      return job;
+    }
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  throw new Error(`Job ${jobId} did not complete within ${timeout}ms`);
+}
 ```
 
-### Integration Tests
+### Test Coverage Requirements
 
-1. **Email Delivery Test**
-   ```bash
-   # Use Mailpit in development
-   docker run -d -p 1025:1025 -p 8025:8025 axllent/mailpit
-
-   # Set SMTP_HOST=localhost, SMTP_PORT=1025
-   # Submit test audit
-   # Check Mailpit UI at http://localhost:8025
-   ```
-
-2. **Production SMTP Test**
-   ```bash
-   # Create test script: api/scripts/test-email.js
-   node api/scripts/test-email.js your-email@example.com
-   # Verify email received
-   ```
+- **Unit Tests**: All services (pdfService, emailService, validation)
+- **Integration Tests**: Full email flow, error scenarios, retry logic
+- **Edge Cases**: Large data, timeouts, connection failures
+- **Minimum Coverage**: 80% for services, 90% for critical paths
 
 ### Manual Testing Checklist
 
