@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { pool } from './db.js';
 import { callPerplexityAPI, analyzeCustomFeature } from './perplexity.js';
+import auditReportsRouter from './routes/auditReports.js';
 
 dotenv.config();
 
@@ -300,6 +301,9 @@ async function initializeDatabase() {
 }
 
 // Routes
+
+// Mount audit reports router
+app.use('/api/audit-reports', auditReportsRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
