@@ -367,9 +367,44 @@ QUEUE_BACKOFF_DELAY=2000
 2. Set `REDIS_HOST` to the service name (e.g., `saaskiller-redis`)
 3. Coolify will handle networking between containers
 
+**CRITICAL - Enable Redis Persistence:**
+
+Redis must persist data to disk to survive container restarts. Configure one of these persistence modes:
+
+**Option 1: AOF (Append-Only File) - Recommended for queue reliability**
+```bash
+# Add to Redis container configuration in Coolify
+appendonly yes
+appendfsync everysec  # Sync to disk every second
+```
+
+**Option 2: RDB (Snapshotting)**
+```bash
+# Add to Redis container configuration
+save 900 1      # Save if 1 key changed in 15 minutes
+save 300 10     # Save if 10 keys changed in 5 minutes
+save 60 10000   # Save if 10000 keys changed in 1 minute
+```
+
+**Recommended Configuration (Hybrid - Best of Both):**
+```bash
+# Enable both AOF and RDB for maximum durability
+appendonly yes
+appendfsync everysec
+save 900 1
+save 300 10
+save 60 10000
+```
+
+**Volume Mount:**
+Ensure Coolify mounts a persistent volume for Redis data directory:
+- Mount path: `/data` (Redis default)
+- This prevents data loss on container restart
+
 **Option B: Use external Redis instance**
 1. Configure `REDIS_HOST` to point to external Redis server
 2. Ensure network connectivity from Coolify
+3. Verify persistence is enabled on external instance
 
 **Step 1.4: Create Database Migration**
 
@@ -624,12 +659,31 @@ In Coolify, add a **separate service** for the queue worker:
 
 **Step 2.4: PDF Service**
 
+**Design Constraints (User Requirement):**
+
+PDFKit is programmatic and requires manual positioning - NOT a design tool. The PDF output should be:
+
+✅ **Invoice-style** (clean, simple, text-heavy)
+- Simple text layout with clear hierarchy
+- Minimal graphics (logo, dividers only)
+- Table-based data presentation
+- Black text on white background
+- Professional business document aesthetic
+
+❌ **NOT Brochure-style** (avoid complex layouts)
+- No multi-column layouts
+- No complex graphics or illustrations
+- No background images or gradients
+- No advanced typography (stick to standard fonts)
+
+**Rationale:** PDFKit excels at document generation (invoices, receipts, reports) but is not designed for marketing materials. Keeping it simple saves dev time and ensures consistent output.
+
 Create `/home/tim/Desktop/saaskiller/api/services/pdfService.js`:
 ```javascript
 import PDFDocument from 'pdfkit';
 
 /**
- * Generate audit report PDF
+ * Generate audit report PDF (Invoice-style layout)
  * @param {Object} auditData - Audit report data from frontend
  * @returns {Promise<Buffer>} - PDF buffer
  */
