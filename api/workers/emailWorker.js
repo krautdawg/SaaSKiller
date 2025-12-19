@@ -1,6 +1,17 @@
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Get current file's directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables from api/.env
+dotenv.config({ path: join(__dirname, '../.env') });
+
 import { emailQueue } from '../services/queueService.js';
 import { sendAuditReport } from '../services/emailService.js';
-import pool from '../db.js';
+import { pool } from '../db.js';
 
 /**
  * Email Worker - Background Job Processor

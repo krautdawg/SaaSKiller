@@ -211,6 +211,44 @@ export const api = {
   },
 
   /**
+   * Submit audit report (queues email job)
+   */
+  submitAuditReport: async (auditData) => {
+    try {
+      if (!auditData.name || !auditData.email || !auditData.toolName) {
+        throw new Error('Name, email, and tool name are required');
+      }
+
+      console.log('[API] Submitting audit report:', auditData.email);
+
+      const response = await withTimeout(
+        fetch(`${API_URL}/api/audit-reports`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(auditData)
+        }),
+        10000 // 10 second timeout
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || 'Failed to submit audit report');
+      }
+
+      const result = await response.json();
+      console.log('[API] Audit report queued successfully:', result.reportId);
+
+      return result;
+
+    } catch (error) {
+      console.error('[API] Error submitting audit report:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Analyze a custom feature using Perplexity AI
    */
   analyzeCustomFeature: async (featureName) => {

@@ -16,7 +16,23 @@ import { api } from './services/api';
  * HomePage Component - Original audit flow
  */
 const HomePage = () => {
-  const { currentStep, selectedTool, calculateBleed, calculateBuildCost, setStep } = useAuditStore();
+  const {
+    currentStep,
+    selectedTool,
+    selectedTier,
+    userCount,
+    checkedFeatures,
+    customFeatures,
+    calculateBleed,
+    calculateBuildCost,
+    setStep
+  } = useAuditStore();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   return (
     <main id="main-content" className="container mx-auto px-4 py-12 max-w-5xl">
@@ -51,26 +67,118 @@ const HomePage = () => {
            </p>
            <div className="p-6 rounded-xl border bg-white border-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
              <h3 className="text-xl font-bold mb-4 font-heading">Where should we send your official quote?</h3>
-             <form className="space-y-4 text-left" onSubmit={(e) => {
-                 e.preventDefault();
-                 alert("Lead submitted! (This would call api.submitLead)");
-             }}>
-               <div>
-                 <label className="block font-bold text-sm mb-1 font-sans">Email Address</label>
-                 <input type="email" className="w-full border p-3 rounded-lg font-sans" placeholder="you@company.com" required />
+
+             {submitSuccess ? (
+               <div className="text-center py-8 animate-fade-in">
+                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                   ✅
+                 </div>
+                 <h4 className="text-xl font-bold mb-2 font-heading">Report Sent!</h4>
+                 <p className="text-gray-600 font-sans">
+                   Check your email for your detailed audit report PDF.
+                 </p>
                </div>
-               <button type="submit" className="w-full bg-brand-accent text-brand-surface px-6 py-3 rounded-lg font-bold
-                                  hover:bg-red-600 hover:-translate-y-1
-                                  active:translate-y-0 active:scale-95 active:shadow-none
-                                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
-                                  disabled:opacity-50 disabled:cursor-not-allowed
-                                  shadow-lg transition-all transform duration-200 font-sans">
-                 Get My Sovereign Software Quote
-               </button>
-               <p className="text-xs text-center text-gray-400 mt-4 font-sans">
-                 No spam. Just a PDF with specs and a contract.
-               </p>
-             </form>
+             ) : (
+               <form className="space-y-4 text-left" onSubmit={async (e) => {
+                 e.preventDefault();
+                 setSubmitting(true);
+                 setSubmitError(null);
+
+                 try {
+                   const buildCost = calculateBuildCost();
+                   const bleedAmount = calculateBleed();
+                   const savingsAmount = bleedAmount - ((buildCost.min + buildCost.max) / 2);
+                   const roiMonths = savingsAmount > 0 ? Math.ceil(((buildCost.min + buildCost.max) / 2) / (bleedAmount / 12)) : null;
+
+                   // Build features arrays
+                   const featuresKept = selectedTool.features
+                     .filter(f => checkedFeatures[f.name])
+                     .map(f => ({ name: f.name, complexity: f.complexity || 'medium' }));
+
+                   const featuresRemoved = selectedTool.features
+                     .filter(f => !checkedFeatures[f.name])
+                     .map(f => ({ name: f.name, complexity: f.complexity || 'medium' }));
+
+                   const customFeaturesFormatted = customFeatures.map(f => ({
+                     name: f.name,
+                     complexity: f.complexity,
+                     estimatedHours: f.estimatedHours
+                   }));
+
+                   const auditData = {
+                     name,
+                     email,
+                     toolId: selectedTool.id || null,
+                     toolName: selectedTool.name,
+                     tierId: selectedTier?.id || null,
+                     tierName: selectedTier?.tier_name || null,
+                     teamSize: userCount,
+                     featuresKept,
+                     featuresRemoved,
+                     customFeatures: customFeaturesFormatted,
+                     bleedAmount,
+                     buildCostMin: buildCost.min,
+                     buildCostMax: buildCost.max,
+                     savingsAmount,
+                     roiMonths
+                   };
+
+                   await api.submitAuditReport(auditData);
+                   setSubmitSuccess(true);
+
+                 } catch (error) {
+                   console.error('Submission error:', error);
+                   setSubmitError(error.message || 'Failed to submit audit report. Please try again.');
+                 } finally {
+                   setSubmitting(false);
+                 }
+               }}>
+                 <div>
+                   <label className="block font-bold text-sm mb-1 font-sans">Full Name</label>
+                   <input
+                     type="text"
+                     className="w-full border p-3 rounded-lg font-sans"
+                     placeholder="John Doe"
+                     value={name}
+                     onChange={(e) => setName(e.target.value)}
+                     required
+                   />
+                 </div>
+                 <div>
+                   <label className="block font-bold text-sm mb-1 font-sans">Email Address</label>
+                   <input
+                     type="email"
+                     className="w-full border p-3 rounded-lg font-sans"
+                     placeholder="you@company.com"
+                     value={email}
+                     onChange={(e) => setEmail(e.target.value)}
+                     required
+                   />
+                 </div>
+
+                 {submitError && (
+                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-sans">
+                     {submitError}
+                   </div>
+                 )}
+
+                 <button
+                   type="submit"
+                   disabled={submitting}
+                   className="w-full bg-brand-accent text-brand-surface px-6 py-3 rounded-lg font-bold
+                              hover:bg-red-600 hover:-translate-y-1
+                              active:translate-y-0 active:scale-95 active:shadow-none
+                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                              disabled:opacity-50 disabled:cursor-not-allowed
+                              shadow-lg transition-all transform duration-200 font-sans"
+                 >
+                   {submitting ? 'Sending...' : 'Get My Sovereign Software Quote'}
+                 </button>
+                 <p className="text-xs text-center text-gray-400 mt-4 font-sans">
+                   No spam. Just a PDF with specs and a contract.
+                 </p>
+               </form>
+             )}
            </div>
            <button
              onClick={() => setStep('audit')}

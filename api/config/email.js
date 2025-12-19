@@ -1,4 +1,8 @@
 import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+// Load environment variables (safe to call multiple times)
+dotenv.config();
 
 /**
  * Email Configuration for Nodemailer
