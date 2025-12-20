@@ -22,6 +22,9 @@ if (!fs.existsSync(PDF_STORAGE_PATH)) {
   fs.mkdirSync(PDF_STORAGE_PATH, { recursive: true });
 }
 
+// Logo path
+const LOGO_PATH = path.join(__dirname, '../assets/logo.png');
+
 /**
  * Generate PDF audit report
  * @param {Object} auditData - Audit report data
@@ -57,7 +60,31 @@ export async function generateAuditPDF(auditData) {
       const stream = fs.createWriteStream(filePath);
       doc.pipe(stream);
 
-      // --- HEADER ---
+      // --- HEADER WITH LOGOS ---
+      const pageWidth = doc.page.width;
+      const margin = 50;
+      const logoWidth = 80;
+      const logoHeight = 60;
+
+      // Add logo to top left
+      if (fs.existsSync(LOGO_PATH)) {
+        doc.image(LOGO_PATH, margin, margin, {
+          width: logoWidth,
+          height: logoHeight,
+          fit: [logoWidth, logoHeight]
+        });
+
+        // Add logo to top right
+        doc.image(LOGO_PATH, pageWidth - margin - logoWidth, margin, {
+          width: logoWidth,
+          height: logoHeight,
+          fit: [logoWidth, logoHeight]
+        });
+      }
+
+      // Move down past logos
+      doc.y = margin + logoHeight + 20;
+
       doc
         .fontSize(28)
         .fillColor('#DC2626') // brand-error red
