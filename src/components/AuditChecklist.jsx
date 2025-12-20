@@ -22,13 +22,13 @@ const AuditChecklist = () => {
   const coreFeatures = selectedTool.features?.filter(f => f.type === 'core') || [];
   const bloatyFeatures = selectedTool.features?.filter(f => f.type === 'bloat') || [];
 
-  // Show only top 20 core features by default
-  const visibleCoreFeatures = showAllCoreFeatures ? coreFeatures : coreFeatures.slice(0, 20);
-  const remainingCoreCount = coreFeatures.length - 20;
+  // Show only top 10 core features by default
+  const visibleCoreFeatures = showAllCoreFeatures ? coreFeatures : coreFeatures.slice(0, 10);
+  const remainingCoreCount = coreFeatures.length - 10;
 
-  // Show only top 10 bloaty features by default
-  const visibleBloatyFeatures = showAllBloatyFeatures ? bloatyFeatures : bloatyFeatures.slice(0, 10);
-  const remainingBloatyCount = bloatyFeatures.length - 10;
+  // Show only top 6 bloaty features by default
+  const visibleBloatyFeatures = showAllBloatyFeatures ? bloatyFeatures : bloatyFeatures.slice(0, 6);
+  const remainingBloatyCount = bloatyFeatures.length - 6;
 
   return (
     <div className="space-y-4">
@@ -68,7 +68,7 @@ const AuditChecklist = () => {
             Show {remainingCoreCount} more core features
           </button>
         )}
-        {showAllCoreFeatures && coreFeatures.length > 20 && (
+        {showAllCoreFeatures && coreFeatures.length > 10 && (
           <button
             onClick={() => setShowAllCoreFeatures(false)}
             className="mt-4 w-full py-2 text-sm text-gray-600 hover:text-gray-800 font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -116,7 +116,7 @@ const AuditChecklist = () => {
               Show {remainingBloatyCount} more bloaty features
             </button>
           )}
-          {showAllBloatyFeatures && bloatyFeatures.length > 10 && (
+          {showAllBloatyFeatures && bloatyFeatures.length > 6 && (
             <button
               onClick={() => setShowAllBloatyFeatures(false)}
               className="mt-4 w-full py-2 text-sm text-gray-600 hover:text-gray-800 font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"

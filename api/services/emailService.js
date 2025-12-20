@@ -80,9 +80,10 @@ export async function sendUserEmail(auditData, pdfPath) {
  * Send notification email to provider
  * @param {Object} auditData - Audit report data
  * @param {string} userMessageId - User email message ID
+ * @param {string} pdfPath - Path to generated PDF (optional)
  * @returns {Promise<Object>} - Email send result
  */
-export async function sendProviderEmail(auditData, userMessageId) {
+export async function sendProviderEmail(auditData, userMessageId, pdfPath = null) {
   try {
     // Load and render template
     const template = loadTemplate('provider-notification');
@@ -97,12 +98,25 @@ export async function sendProviderEmail(auditData, userMessageId) {
       userMessageId
     });
 
-    // Send notification email
-    const result = await sendEmail({
+    // Build email options
+    const emailOptions = {
       to: providerEmail,
       subject: `New Audit: ${auditData.toolName} - $${auditData.savingsAmount.toLocaleString()} savings`,
       html
-    });
+    };
+
+    // Attach PDF if provided
+    if (pdfPath && fs.existsSync(pdfPath)) {
+      emailOptions.attachments = [
+        {
+          filename: `saaskiller-audit-${auditData.toolName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`,
+          path: pdfPath
+        }
+      ];
+    }
+
+    // Send notification email
+    const result = await sendEmail(emailOptions);
 
     console.log(`✅ Provider email sent: ${result.messageId}`);
     return result;
@@ -130,9 +144,9 @@ export async function sendAuditReport(auditData) {
     console.log(`📧 Sending email to user: ${auditData.email}...`);
     const userResult = await sendUserEmail(auditData, pdfPath);
 
-    // Step 3: Send notification to provider
+    // Step 3: Send notification to provider (with PDF attachment)
     console.log(`📧 Sending notification to provider...`);
-    const providerResult = await sendProviderEmail(auditData, userResult.messageId);
+    const providerResult = await sendProviderEmail(auditData, userResult.messageId, pdfPath);
 
     // Step 4: Clean up PDF (optional - keep for debugging if needed)
     // await deletePDF(pdfPath);
