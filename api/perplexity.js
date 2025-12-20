@@ -90,19 +90,18 @@ export async function callPerplexityAPI(query) {
 }
 
 CRITICAL RULES:
-1. **Core Features (Top 50):
-   - List the top 50 essential features used by 80%+ of customers
-   - Include all basic functionality that defines the tool
-   - Examples: "Send Messages", "File Sharing", "User Authentication", "Search"
-   - Assign priority 1-100 (lower = more important/commonly used)
-   - Priority helps UI show "top 20" but store ALL
+1. **Core Features (Target 10-50):
+   - Provide a comprehensive list of essential features (Minimum 10, Maximum 50).
+   - If the tool is simple, aim for at least 10. If complex, provide up to 50.
+   - List features used by 80%+ of customers.
+   - Examples: "Send Messages", "File Sharing", "User Authentication", "Search".
+   - Assign priority 1-100 (lower = more important/commonly used).
 
-2. **Bloaty Features (Top 20):
-   - List the top 20 advanced features rarely used by 80%+ of customers
-   - Enterprise-only or niche functionality
-   - Examples: "Advanced Security Controls", "Custom Integrations", "White Labeling"
-   - Assign priority 1-100 (lower = more important among bloat features)
-   - Priority helps UI show "top 10" but store ALL
+2. **Bloaty Features (Target 5-20):
+   - List advanced features rarely used by 80%+ of customers (Minimum 5, Maximum 20).
+   - If the tool has very little bloat, provide at least 5. If enterprise-heavy, provide up to 20.
+   - Examples: "Advanced Security Controls", "Custom Integrations", "White Labeling".
+   - Assign priority 1-100 (lower = more important among bloat features).
 
 3. **Feature Descriptions:
    - Keep under 100 characters
@@ -210,6 +209,16 @@ Return ONLY valid JSON. No markdown, no explanations, just the raw JSON object.`
     // Sort features by priority (lowest priority number = most important)
     toolData.core_features.sort((a, b) => (a.priority || 999) - (b.priority || 999));
     toolData.bloaty_features.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+
+    // Enforce hard maximums (Option 2 safety net)
+    if (toolData.core_features.length > 50) {
+      console.log(`[Perplexity] Slicing core features from ${toolData.core_features.length} to 50`);
+      toolData.core_features = toolData.core_features.slice(0, 50);
+    }
+    if (toolData.bloaty_features.length > 20) {
+      console.log(`[Perplexity] Slicing bloaty features from ${toolData.bloaty_features.length} to 20`);
+      toolData.bloaty_features = toolData.bloaty_features.slice(0, 20);
+    }
 
     console.log(`[Perplexity] ✅ Successfully analyzed ${toolData.name} (${toolData.core_features.length} core, ${toolData.bloaty_features.length} bloat, ${toolData.subscription_tiers.length} tiers)`);
     return toolData;

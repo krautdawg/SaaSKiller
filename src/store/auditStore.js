@@ -13,11 +13,17 @@ const useAuditStore = create((set, get) => ({
   setStep: (step) => set({ currentStep: step }),
 
   setSelectedTool: (tool) => {
-    // Initialize checkedFeatures: core=true, bloat=true (user unchecks what they don't use)
+    // Initialize checkedFeatures: Top 5 Core = checked, Rest (incl. Bloat) = unchecked
     const initialChecks = {};
     if (tool && tool.features) {
+      let coreCount = 0;
       tool.features.forEach(f => {
-        initialChecks[f.name] = true;
+        if (f.type === 'core' && coreCount < 5) {
+          initialChecks[f.name] = true;
+          coreCount++;
+        } else {
+          initialChecks[f.name] = false;
+        }
       });
     }
 
