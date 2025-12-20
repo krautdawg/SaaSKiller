@@ -10,12 +10,15 @@ import QuoteGenerator from './components/QuoteGenerator';
 import ToolBrowser from './components/ToolBrowser';
 import ToolDetailView from './components/ToolDetailView';
 import PricingPage from './components/PricingPage';
+import LanguageToggle from './components/LanguageToggle';
+import { useLang, getLang } from './lang';
 import { api } from './services/api';
 
 /**
  * HomePage Component - Original audit flow
  */
 const HomePage = () => {
+  const { t } = useLang();
   const {
     currentStep,
     selectedTool,
@@ -42,8 +45,8 @@ const HomePage = () => {
       {currentStep === 'audit' && selectedTool && (
         <div className="animate-fade-in">
           <div className="mb-12 text-center">
-             <h2 className="text-3xl font-bold mb-4 font-heading">We found <span className="text-brand-secondary">{selectedTool.name}</span>.</h2>
-             <p className="text-lg font-sans">Uncheck the features you NEVER use.</p>
+             <h2 className="text-3xl font-bold mb-4 font-heading">{t('audit.found', selectedTool.name)}</h2>
+             <p className="text-lg font-sans">{t('audit.instruction')}</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12">
@@ -61,21 +64,21 @@ const HomePage = () => {
            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl animate-bounce">
              🎉
            </div>
-           <h2 className="text-4xl font-bold mb-4 font-heading">Great Choice.</h2>
+           <h2 className="text-4xl font-bold mb-4 font-heading">{t('results.title')}</h2>
            <p className="text-xl text-gray-600 mb-8 font-sans">
-             You could save <span className="font-bold text-green-600 font-mono">${(calculateBleed() - ((calculateBuildCost().min + calculateBuildCost().max) / 2)).toLocaleString()}</span> over the next 3 years.
+             {t('results.savings', (calculateBleed() - ((calculateBuildCost().min + calculateBuildCost().max) / 2)).toLocaleString())}
            </p>
            <div className="p-6 rounded-xl border bg-white border-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
-             <h3 className="text-xl font-bold mb-4 font-heading">Where should we send your official quote?</h3>
+             <h3 className="text-xl font-bold mb-4 font-heading">{t('results.form.title')}</h3>
 
              {submitSuccess ? (
                <div className="text-center py-8 animate-fade-in">
                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
                    ✅
                  </div>
-                 <h4 className="text-xl font-bold mb-2 font-heading">Report Sent!</h4>
+                 <h4 className="text-xl font-bold mb-2 font-heading">{t('results.success.title')}</h4>
                  <p className="text-gray-600 font-sans">
-                   Check your email for your detailed audit report PDF.
+                   {t('results.success.message')}
                  </p>
                </div>
              ) : (
@@ -120,7 +123,8 @@ const HomePage = () => {
                      buildCostMin: buildCost.min,
                      buildCostMax: buildCost.max,
                      savingsAmount,
-                     roiMonths
+                     roiMonths,
+                     language: getLang()
                    };
 
                    await api.submitAuditReport(auditData);
@@ -134,22 +138,22 @@ const HomePage = () => {
                  }
                }}>
                  <div>
-                   <label className="block font-bold text-sm mb-1 font-sans">Full Name</label>
+                   <label className="block font-bold text-sm mb-1 font-sans">{t('results.form.name')}</label>
                    <input
                      type="text"
                      className="w-full border p-3 rounded-lg font-sans"
-                     placeholder="John Doe"
+                     placeholder={t('results.form.namePlaceholder')}
                      value={name}
                      onChange={(e) => setName(e.target.value)}
                      required
                    />
                  </div>
                  <div>
-                   <label className="block font-bold text-sm mb-1 font-sans">Email Address</label>
+                   <label className="block font-bold text-sm mb-1 font-sans">{t('results.form.email')}</label>
                    <input
                      type="email"
                      className="w-full border p-3 rounded-lg font-sans"
-                     placeholder="you@company.com"
+                     placeholder={t('results.form.emailPlaceholder')}
                      value={email}
                      onChange={(e) => setEmail(e.target.value)}
                      required
@@ -172,10 +176,10 @@ const HomePage = () => {
                               disabled:opacity-50 disabled:cursor-not-allowed
                               shadow-lg transition-all transform duration-200 font-sans"
                  >
-                   {submitting ? 'Sending...' : 'Get My Sovereign Software Quote'}
+                   {submitting ? t('results.form.submitting') : t('results.form.submit')}
                  </button>
                  <p className="text-xs text-center text-gray-400 mt-4 font-sans">
-                   No spam. Just a PDF with specs and a contract.
+                   {t('results.form.note')}
                  </p>
                </form>
              )}
@@ -184,7 +188,7 @@ const HomePage = () => {
              onClick={() => setStep('audit')}
              className="mt-8 text-gray-500 underline hover:text-gray-800 font-sans"
            >
-             Back to Audit
+             {t('results.backToAudit')}
            </button>
         </div>
       )}
@@ -194,6 +198,7 @@ const HomePage = () => {
 };
 
 const App = () => {
+  const { t } = useLang();
   const { setStep } = useAuditStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -222,13 +227,13 @@ const App = () => {
           <nav className="hidden md:flex gap-6 font-sans">
             <Link to="/" onClick={handleResetToSearch} className="font-medium text-gray-600 hover:text-brand-secondary
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
-                       rounded transition-colors">Audit Tool</Link>
+                       rounded transition-colors">{t('nav.auditTool')}</Link>
             <Link to="/browse" className="font-medium text-gray-600 hover:text-brand-secondary
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
-                       rounded transition-colors">Browse Tools</Link>
+                       rounded transition-colors">{t('nav.browse')}</Link>
             <Link to="/pricing" className="font-medium text-gray-600 hover:text-brand-secondary
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
-                       rounded transition-colors">Pricing</Link>
+                       rounded transition-colors">{t('nav.pricing')}</Link>
           </nav>
 
           {/* Desktop CTA Button */}
@@ -237,7 +242,7 @@ const App = () => {
                      active:translate-y-0 active:scale-95 active:shadow-none
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                      shadow-lg transition-all transform duration-200 text-sm font-sans">
-              Kill that SaaS!
+              {t('cta.kill')}
           </Link>
 
           {/* Mobile Hamburger Menu Button */}
@@ -267,7 +272,7 @@ const App = () => {
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                          transition-colors"
               >
-                Audit Tool
+                {t('nav.auditTool')}
               </Link>
               <Link
                 to="/browse"
@@ -276,7 +281,7 @@ const App = () => {
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                          transition-colors"
               >
-                Browse Tools
+                {t('nav.browse')}
               </Link>
               <Link
                 to="/pricing"
@@ -285,7 +290,7 @@ const App = () => {
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                          transition-colors"
               >
-                Pricing
+                {t('nav.pricing')}
               </Link>
               <Link
                 to="/"
@@ -296,7 +301,7 @@ const App = () => {
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                          shadow-lg transition-all duration-200"
               >
-                Get Started
+                {t('nav.getStarted')}
               </Link>
             </nav>
           </div>
@@ -312,8 +317,9 @@ const App = () => {
         </Routes>
 
         <footer className="py-12 text-center text-gray-700 text-sm border-t mt-20 font-sans">
-          <p>&copy; 2025 SaaSKiller. All rights reserved.</p>
-          <p className="mt-2">Built with <span className="text-brand-error">♥</span> and Vibe Coding.</p>
+          <p>{t('footer.copyright')}</p>
+          <p className="mt-2">{t('footer.tagline')}</p>
+          <LanguageToggle />
         </footer>
       </div>
     </BrowserRouter>

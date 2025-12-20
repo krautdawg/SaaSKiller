@@ -2,8 +2,10 @@ import React from 'react';
 import useAuditStore from '../store/auditStore';
 import { ChevronDown } from 'lucide-react';
 import { formatTierPrice, isEnterpriseTier } from '../utils/tierPricing';
+import { useLang } from '../lang';
 
 const BleedCalculator = () => {
+  const { t } = useLang();
   const {
     selectedTool,
     userCount,
@@ -32,10 +34,10 @@ const BleedCalculator = () => {
 
   return (
     <div className="p-6 rounded-xl border bg-white border-brand-accent shadow-[0_4px_12px_rgba(0,0,0,0.05)] text-center">
-       <h3 className="text-lg font-bold mb-4 uppercase tracking-widest text-gray-500 font-heading">The <span className="text-brand-error">3-Year</span> Bleed</h3>
-       
+       <h3 className="text-lg font-bold mb-4 uppercase tracking-widest text-gray-500 font-heading">{t('bleed.title')}</h3>
+
        <div className="mb-6">
-         <label className="block text-sm font-bold mb-2 text-left font-sans">Team Size (Users)</label>
+         <label className="block text-sm font-bold mb-2 text-left font-sans">{t('bleed.teamSize')}</label>
          <input
             type="range"
             min="1"
@@ -44,13 +46,13 @@ const BleedCalculator = () => {
             onChange={(e) => setUserCount(parseInt(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-error"
          />
-         <div className="text-right font-bold mt-1 text-2xl font-mono">{userCount} Users</div>
+         <div className="text-right font-bold mt-1 text-2xl font-mono">{userCount} {t('audit.users')}</div>
        </div>
 
        {/* Subscription Tier Selector */}
        {selectedTool.subscription_tiers && selectedTool.subscription_tiers.length > 0 && (
          <div className="mb-6">
-           <label className="block text-sm font-bold mb-2 text-left font-sans">Subscription Plan</label>
+           <label className="block text-sm font-bold mb-2 text-left font-sans">{t('bleed.subscriptionPlan')}</label>
            <div className="relative">
              <select
                value={selectedTier?.name || ''}
@@ -82,7 +84,7 @@ const BleedCalculator = () => {
        {priceMissing && (
          <div className="mb-6 text-left">
            <label className="block text-sm font-bold mb-2 font-sans text-gray-800">
-             Enter price per user / month
+             {t('bleed.pricePerUser')}
            </label>
            <input
              type="number"
@@ -94,13 +96,13 @@ const BleedCalculator = () => {
              placeholder="e.g. 29"
            />
            <p className="text-xs text-gray-500 mt-1">
-             We couldn't find pricing for this tier. Add it to keep the bleed accurate.
+             {t('bleed.priceMissingHint')}
            </p>
          </div>
        )}
 
        <div className="py-6 border-t border-b border-red-200 my-6 bg-white rounded-lg">
-          <div className="text-sm text-gray-500 mb-1 font-sans">Total Rent Paid to {selectedTool.name}</div>
+          <div className="text-sm text-gray-500 mb-1 font-sans">{t('bleed.totalRent', selectedTool.name)}</div>
           {isEnterpriseTier(selectedTier) ? (
             <div className="text-5xl font-extrabold text-brand-error font-heading overflow-hidden whitespace-nowrap">
               {Array(100).fill('$').join('')}
@@ -111,13 +113,13 @@ const BleedCalculator = () => {
             </div>
           )}
           {isEnterpriseTier(selectedTier) ? (
-            <div className="text-xs text-red-400 mt-2 font-medium font-sans">Way too much to count.</div>
+            <div className="text-xs text-red-400 mt-2 font-medium font-sans">{t('bleed.tooMuch')}</div>
           ) : isFreeOrFreemium && calculateBleed() === 0 ? (
             <div className="text-xs text-amber-600 mt-2 font-medium font-sans">
-              FREE tier - Limited features available
+              {t('bleed.freeTier')}
             </div>
           ) : (
-            <div className="text-xs text-red-400 mt-2 font-medium font-sans">Money gone forever.</div>
+            <div className="text-xs text-red-400 mt-2 font-medium font-sans">{t('bleed.note')}</div>
           )}
        </div>
     </div>

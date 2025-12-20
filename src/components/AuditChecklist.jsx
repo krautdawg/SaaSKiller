@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import useAuditStore from '../store/auditStore';
+import { useLang } from '../lang';
 
 const AuditChecklist = () => {
-  const { selectedTool, checkedFeatures, toggleFeature, addCustomFeature, getBloatPercentage } = useAuditStore();
+  const { t } = useLang();
+  const { selectedTool, checkedFeatures, toggleFeature, addCustomFeature, getBloatPercentage, setAllFeatures } = useAuditStore();
   const [newFeatureInput, setNewFeatureInput] = useState('');
   const [showAllCoreFeatures, setShowAllCoreFeatures] = useState(false);
   const [showAllBloatyFeatures, setShowAllBloatyFeatures] = useState(false);
@@ -35,10 +37,26 @@ const AuditChecklist = () => {
       {/* Core Features Box */}
       <div className="p-4 rounded-xl border bg-white border-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
         <div className="flex justify-between items-center mb-3 border-b pb-2">
-          <h3 className="text-lg font-bold font-heading">Core Features</h3>
-          <span className="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">
-            {coreFeatures.length} features
-          </span>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-bold font-heading">{t('audit.coreTitle')}</h3>
+            <span className="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">
+              {coreFeatures.length} {t('audit.features')}
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setAllFeatures(coreFeatures, true)}
+              className="text-xs font-medium text-brand-secondary hover:text-brand-primary transition-colors"
+            >
+              {t('audit.selectAll')}
+            </button>
+            <button
+              onClick={() => setAllFeatures(coreFeatures, false)}
+              className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {t('audit.deselectAll')}
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -82,10 +100,26 @@ const AuditChecklist = () => {
       {bloatyFeatures.length > 0 && (
         <div className="p-4 rounded-xl border bg-white border-red-50 border-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
           <div className="flex justify-between items-center mb-3 border-b pb-2">
-            <h3 className="text-lg font-bold font-heading">Bloaty Features</h3>
-            <span className="text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-700">
-              {getBloatPercentage()}% of features that are bloat killed
-            </span>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-bold font-heading">Bloaty Features</h3>
+              <span className="text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-700">
+                {getBloatPercentage()}% of features that are bloat killed
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setAllFeatures(bloatyFeatures, true)}
+                className="text-xs font-medium text-brand-secondary hover:text-brand-primary transition-colors"
+              >
+                [+ All]
+              </button>
+              <button
+                onClick={() => setAllFeatures(bloatyFeatures, false)}
+                className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                [- All]
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useAuditStore from '../store/auditStore';
 import { api } from '../services/api';
+import { useLang } from '../lang';
 
 const ToolSearch = () => {
+  const { t } = useLang();
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -26,10 +28,10 @@ const ToolSearch = () => {
   const MAX_COST = 100000;
 
   const loadingMessages = [
-    'Connecting to Wrecking Ball...',
-    'Scanning Pricing Models...',
-    'Identifying Bloat...',
-    'Finalizing Audit...'
+    t('search.loading.1'),
+    t('search.loading.2'),
+    t('search.loading.3'),
+    t('search.loading.4')
   ];
 
   // Progressive loading effect - cycle through messages every 2.5s
@@ -87,29 +89,29 @@ const ToolSearch = () => {
     switch (field) {
       case 'name':
         if (!value.trim()) {
-          errorMsg = 'Tool name is required';
+          errorMsg = t('manual.validation.nameRequired');
         } else if (value.length > MAX_NAME_LENGTH) {
-          errorMsg = `Name must be ${MAX_NAME_LENGTH} characters or less`;
+          errorMsg = t('manual.validation.nameLength', MAX_NAME_LENGTH);
         }
         break;
 
       case 'monthly_cost':
         const cost = parseFloat(value);
         if (!value || isNaN(cost)) {
-          errorMsg = 'Monthly cost is required';
+          errorMsg = t('manual.validation.costRequired');
         } else if (cost < 0) {
-          errorMsg = 'Cost must be a positive number';
+          errorMsg = t('manual.validation.costPositive');
         } else if (cost > MAX_COST) {
-          errorMsg = `Cost must be less than $${MAX_COST.toLocaleString()}`;
+          errorMsg = t('manual.validation.costMax', MAX_COST);
         }
         break;
 
       case 'features':
         const featuresArray = value.split('\n').filter(f => f.trim().length > 0);
         if (featuresArray.length === 0) {
-          errorMsg = 'At least one feature is required';
+          errorMsg = t('manual.validation.featuresRequired');
         } else if (featuresArray.length > 50) {
-          errorMsg = 'Maximum 50 features allowed';
+          errorMsg = t('manual.validation.featuresMax');
         }
         break;
 
@@ -195,7 +197,7 @@ const ToolSearch = () => {
             </div>
           </div>
 
-          <h2 className="text-3xl font-bold mb-4 font-heading">Oops!</h2>
+          <h2 className="text-3xl font-bold mb-4 font-heading">{t('error.title')}</h2>
           <p className="text-xl text-gray-600 mb-8 font-sans">{error.message}</p>
 
           {/* Network Error - Show Retry */}
@@ -204,7 +206,7 @@ const ToolSearch = () => {
               onClick={handleRetry}
               className="bg-brand-accent text-brand-surface px-8 py-3 rounded-full font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 font-sans"
             >
-              Retry Connection
+              {t('error.retry')}
             </button>
           )}
 
@@ -215,14 +217,14 @@ const ToolSearch = () => {
                 onClick={() => setShowManualEntry(true)}
                 className="bg-brand-accent text-brand-surface px-8 py-3 rounded-full font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 font-sans"
               >
-                Enter Manually
+                {t('error.enterManually')}
               </button>
               <p className="text-sm text-gray-500 font-sans">or</p>
               <button
                 onClick={() => setError(null)}
                 className="text-brand-secondary hover:underline font-sans"
               >
-                Try a Different Tool
+                {t('error.tryDifferent')}
               </button>
             </div>
           )}
@@ -230,11 +232,11 @@ const ToolSearch = () => {
           {/* Manual Entry Form */}
           {showManualEntry && (
             <div className="mt-8 bg-white p-8 rounded-lg shadow-lg text-left max-w-lg mx-auto">
-              <h3 className="text-2xl font-bold mb-6 font-heading text-center">Manual Entry</h3>
+              <h3 className="text-2xl font-bold mb-6 font-heading text-center">{t('manual.title')}</h3>
               <form onSubmit={handleManualEntry} className="space-y-6">
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-bold font-sans">Tool Name</label>
+                    <label className="block text-sm font-bold font-sans">{t('manual.toolName')}</label>
                     <span className="text-xs text-gray-500 font-sans">
                       {manualData.name.length}/{MAX_NAME_LENGTH}
                     </span>
@@ -259,7 +261,7 @@ const ToolSearch = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold mb-2 font-sans">Monthly Cost (USD)</label>
+                  <label className="block text-sm font-bold mb-2 font-sans">{t('manual.monthlyCost')}</label>
                   <input
                     type="number"
                     required
@@ -283,7 +285,7 @@ const ToolSearch = () => {
 
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-bold font-sans">Features (one per line)</label>
+                    <label className="block text-sm font-bold font-sans">{t('manual.features')}</label>
                     <span className="text-xs text-gray-500 font-sans">
                       {manualData.features.split('\n').filter(f => f.trim()).length}/50 features
                     </span>
@@ -304,7 +306,7 @@ const ToolSearch = () => {
                   {validationErrors.features ? (
                     <p className="text-red-500 text-sm mt-1 font-sans">{validationErrors.features}</p>
                   ) : (
-                    <p className="text-xs text-gray-500 mt-2 font-sans">Enter each feature on a new line</p>
+                    <p className="text-xs text-gray-500 mt-2 font-sans">{t('manual.featuresHint')}</p>
                   )}
                 </div>
 
@@ -313,7 +315,7 @@ const ToolSearch = () => {
                     type="submit"
                     className="flex-1 bg-brand-accent text-brand-surface px-6 py-3 rounded-full font-bold hover:bg-red-600 shadow-lg transition-all font-sans"
                   >
-                    Continue to Audit
+                    {t('manual.continue')}
                   </button>
                   <button
                     type="button"
@@ -324,7 +326,7 @@ const ToolSearch = () => {
                     }}
                     className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-full font-bold hover:bg-gray-300 shadow-lg transition-all font-sans"
                   >
-                    Cancel
+                    {t('manual.cancel')}
                   </button>
                 </div>
               </form>
@@ -340,18 +342,18 @@ const ToolSearch = () => {
       {!loading ? (
         <div className="text-center py-20 animate-fade-in">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight font-heading">
-            Stop Renting.<br/>
-            <span className="text-brand-accent">Start Owning.</span>
+            {t('hero.title.line1')}<br/>
+            <span className="text-brand-accent">{t('hero.title.line2')}</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-2xl mx-auto font-sans">
-            You're paying for 80% bloat. We build you a custom tool with only the 20% you use. One-time fee. Yours forever.
+            {t('hero.subtitle')} <span className="underline decoration-brand-text/30 underline-offset-4 font-bold text-brand-text">{t('hero.subtitle.highlight')}</span> {t('hero.subtitle.end')}
           </p>
 
           <div className="max-w-xl mx-auto">
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
-                placeholder="What SaaS are we killing today? (e.g., Salesforce)"
+                placeholder={t('search.placeholder')}
                 className="w-full px-6 py-4 text-lg rounded-full border-2 border-brand-text focus:outline-none shadow-lg focus:border-brand-secondary focus:ring-4 focus:ring-brand-secondary/20 font-sans"
                 value={searchTerm}
                 maxLength={MAX_SEARCH_LENGTH}
@@ -363,7 +365,7 @@ const ToolSearch = () => {
                   disabled={!searchTerm.trim()}
                   className="bg-brand-accent text-brand-surface px-6 py-3 rounded-full font-bold hover:bg-red-600 hover:-translate-y-1 shadow-lg transition-all transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-sans"
                 >
-                  Kill It
+                  {t('search.button')}
                 </button>
               </div>
             </form>
@@ -384,7 +386,7 @@ const ToolSearch = () => {
               </div>
             </div>
           </div>
-          <h2 className="text-2xl font-bold mb-2 font-heading">Auditing {searchTerm}...</h2>
+          <h2 className="text-2xl font-bold mb-2 font-heading">{t('search.auditing', searchTerm)}</h2>
           <p className="text-gray-500 font-sans animate-pulse" key={loadingMessageIndex}>
             {loadingMessages[loadingMessageIndex]}
           </p>

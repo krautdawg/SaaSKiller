@@ -55,6 +55,14 @@ const useAuditStore = create((set, get) => ({
       [featureName]: !state.checkedFeatures[featureName]
     }
   })),
+
+  setAllFeatures: (features, value) => set((state) => {
+    const newChecked = { ...state.checkedFeatures };
+    features.forEach(f => {
+      newChecked[f.name] = value;
+    });
+    return { checkedFeatures: newChecked };
+  }),
   
   setUserCount: (count) => set({ userCount: count }),
 

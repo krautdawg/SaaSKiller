@@ -271,7 +271,7 @@ const SaaSKillerApp = () => {
               <span style={{ color: COLORS.accent }}>Start Owning.</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-2xl mx-auto">
-              You're paying for 80% bloat. We build you a custom tool with only the 20% you use. One-time fee. Yours forever.
+              You're paying for 80% bloat. We build you a <span style={{ textDecoration: 'underline', fontWeight: 'bold' }}>custom tool</span> with only the 20% you use. One-time fee. Yours forever.
             </p>
             
             <div className="max-w-xl mx-auto relative">
