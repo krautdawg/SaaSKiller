@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DollarSign, Users, Loader2, TrendingDown } from 'lucide-react';
 import { formatTierPrice } from '../utils/tierPricing';
+import { useLang } from '../lang';
 
 /**
  * CostCalculator Component
@@ -36,6 +37,7 @@ const CostCalculator = ({
   manualPricePerUser = '',
   onManualPriceChange = () => {}
 }) => {
+  const { t, lang } = useLang();
   const [localTeamSize, setLocalTeamSize] = useState(teamSize);
   const [teamSizeError, setTeamSizeError] = useState('');
   const tierName = (selectedTier?.tier_name || selectedTier?.name || '').toLowerCase();
@@ -68,15 +70,15 @@ const CostCalculator = ({
     // Ensure valid value on blur
     const numValue = parseInt(localTeamSize);
     if (isNaN(numValue) || localTeamSize === '') {
-      setTeamSizeError('Team size is required');
+      setTeamSizeError(t('manual.validation.nameRequired')); // Reusing for required check
       setLocalTeamSize(1);
       onTeamSizeChange(1);
     } else if (numValue < 1) {
-      setTeamSizeError('Team size must be at least 1');
+      setTeamSizeError(t('manual.validation.costPositive')); // Reusing for positive check
       setLocalTeamSize(1);
       onTeamSizeChange(1);
     } else if (numValue > 1000) {
-      setTeamSizeError('Team size cannot exceed 1000');
+      setTeamSizeError(t('manual.validation.costMax', 1000)); // Reusing for max check
       setLocalTeamSize(1000);
       onTeamSizeChange(1000);
     }
@@ -91,9 +93,9 @@ const CostCalculator = ({
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: lang === 'de' ? 'EUR' : 'USD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(amount);
@@ -106,11 +108,11 @@ const CostCalculator = ({
         <div className="flex items-center gap-2 mb-1">
           <DollarSign className="w-5 h-5 text-brand-secondary" />
           <h3 className="text-lg font-semibold text-brand-text">
-            Cost Calculator
+            {t('costCalc.title')}
           </h3>
         </div>
         <p className="text-sm text-gray-600 leading-relaxed">
-          Calculate your estimated costs
+          {t('costCalc.subtitle')}
         </p>
       </div>
 
@@ -119,7 +121,7 @@ const CostCalculator = ({
         {/* Selected Tier Display */}
         {selectedTier && (
           <div className="pb-4 border-b border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Selected Tier</div>
+            <div className="text-xs text-gray-500 mb-1">{t('costCalc.selectedTier')}</div>
             <div className="text-sm font-semibold text-brand-text">
               {selectedTier.tier_name}
             </div>
@@ -138,7 +140,7 @@ const CostCalculator = ({
         {needsManualPrice && (
           <div>
             <label className="block text-sm font-semibold text-brand-text mb-2">
-              Enter price per user / month
+              {t('bleed.pricePerUser')}
             </label>
             <input
               type="number"
@@ -150,7 +152,7 @@ const CostCalculator = ({
               placeholder="e.g. 49"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Pricing missing for this tier. Add it to estimate costs.
+              {t('bleed.priceMissingHint')}
             </p>
           </div>
         )}
@@ -158,7 +160,7 @@ const CostCalculator = ({
         {/* Team Size Input */}
         <div>
           <label className="block text-sm font-semibold text-brand-text mb-2">
-            Team Size
+            {t('audit.teamSize')}
           </label>
           <div className="relative">
             <Users className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 transition-colors
@@ -177,14 +179,14 @@ const CostCalculator = ({
                          ? 'border-red-500 focus:ring-red-500'
                          : 'border-gray-300 focus:ring-brand-secondary'
                        }`}
-              placeholder="Enter team size"
+              placeholder={t('manual.validation.nameRequired')}
             />
           </div>
           {teamSizeError ? (
             <div className="mt-1 text-xs text-red-500">{teamSizeError}</div>
           ) : (
             <div className="mt-1 text-xs text-gray-500">
-              Number of team members (1-1000)
+              {t('costCalc.teamSizeHint')}
             </div>
           )}
         </div>
@@ -192,7 +194,7 @@ const CostCalculator = ({
         {/* Billing Period Toggle */}
         <div>
           <label className="block text-sm font-semibold text-brand-text mb-2">
-            Billing Period
+            {t('costCalc.billingPeriod')}
           </label>
           <div className="flex gap-2">
             <button
@@ -204,7 +206,7 @@ const CostCalculator = ({
                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                        }`}
             >
-              Monthly
+              {t('costCalc.monthly')}
             </button>
             <button
               onClick={() => handleBillingToggle('yearly')}
@@ -215,7 +217,7 @@ const CostCalculator = ({
                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                        }`}
             >
-              Yearly
+              {t('costCalc.yearly')}
             </button>
           </div>
         </div>
@@ -240,26 +242,26 @@ const CostCalculator = ({
             <div className="pt-4 border-t border-gray-200">
               {/* Monthly Cost */}
               <div className="mb-4">
-                <div className="text-xs text-gray-500 mb-1">Monthly Cost</div>
+                <div className="text-xs text-gray-500 mb-1">{t('costCalc.monthlyCost')}</div>
                 <div className="text-2xl font-bold text-brand-text">
                   {formatCurrency(costCalculation.monthly_cost)}
                 </div>
                 {costCalculation.price_model === 'per_seat' && (
                   <div className="text-xs text-gray-500 mt-1">
-                    ${costCalculation.monthly_cost / teamSize}/user
+                    {formatCurrency(costCalculation.monthly_cost / teamSize)}/{t('audit.users').slice(0, -1)}
                   </div>
                 )}
               </div>
 
               {/* Yearly Cost */}
               <div className="mb-4">
-                <div className="text-xs text-gray-500 mb-1">Yearly Cost</div>
+                <div className="text-xs text-gray-500 mb-1">{t('costCalc.yearlyCost')}</div>
                 <div className="text-xl font-semibold text-brand-text">
                   {formatCurrency(costCalculation.yearly_cost)}
                 </div>
                 {costCalculation.yearly_monthly_equivalent && (
                   <div className="text-xs text-gray-500 mt-1">
-                    {formatCurrency(costCalculation.yearly_monthly_equivalent)}/month equivalent
+                    {formatCurrency(costCalculation.yearly_monthly_equivalent)}/{t('costCalc.monthly').toLowerCase()} {t('costCalc.equivalent')}
                   </div>
                 )}
               </div>
@@ -270,13 +272,11 @@ const CostCalculator = ({
                   <div className="flex items-center gap-2 mb-1">
                     <TrendingDown className="w-4 h-4 text-brand-secondary" />
                     <span className="text-sm font-semibold text-brand-secondary">
-                      Save {costCalculation.savings_percent}% yearly
+                      {t('costCalc.saveYearly', costCalculation.savings_percent)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-700">
-                    You save {formatCurrency(
-                      (costCalculation.monthly_cost * 12) - costCalculation.yearly_cost
-                    )} per year by paying annually
+                    {t('costCalc.youSave', formatCurrency((costCalculation.monthly_cost * 12) - costCalculation.yearly_cost))}
                   </p>
                 </div>
               )}
@@ -285,7 +285,7 @@ const CostCalculator = ({
             {/* Annual Total */}
             <div className="pt-4 border-t border-gray-200">
               <div className="text-xs text-gray-500 mb-1">
-                {billingPeriod === 'monthly' ? 'Annual Total (Monthly)' : 'Annual Total (Yearly)'}
+                {t('costCalc.annualTotal', billingPeriod === 'monthly' ? t('costCalc.monthly') : t('costCalc.yearly'))}
               </div>
               <div className="text-xl font-bold text-brand-text">
                 {billingPeriod === 'monthly'

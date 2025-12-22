@@ -235,6 +235,38 @@ const useSaasToolsStore = create((set, get) => ({
   },
 
   /**
+   * Refresh selected tool content for current language
+   * Preserves UI state (tier selection, expansion, cost calc)
+   */
+  refreshSelectedToolForLanguage: async () => {
+    const { selectedTool, selectedTier } = get();
+    if (!selectedTool?.id) return;
+
+    set({ isLoadingTool: true, toolError: null });
+
+    try {
+      const tool = await saasToolsApi.getToolById(selectedTool.id);
+
+      const selectedTierId = selectedTier?.id;
+      const nextSelectedTier = selectedTierId
+        ? (tool.subscription_tiers || []).find(t => t.id === selectedTierId) || selectedTier
+        : selectedTier;
+
+      set({
+        selectedTool: tool,
+        selectedTier: nextSelectedTier,
+        isLoadingTool: false
+      });
+    } catch (error) {
+      console.error('[Store] Error refreshing tool for language:', error);
+      set({
+        toolError: error.message,
+        isLoadingTool: false
+      });
+    }
+  },
+
+  /**
    * Select a subscription tier
    */
   selectTier: async (tier) => {
@@ -413,5 +445,20 @@ const useSaasToolsStore = create((set, get) => ({
       });
   }
 }));
+
+let languageRefreshInFlight = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener('languagechange', () => {
+    if (languageRefreshInFlight) return;
+    const { selectedTool, refreshSelectedToolForLanguage } = useSaasToolsStore.getState();
+    if (!selectedTool?.id) return;
+
+    languageRefreshInFlight = (async () => {
+      await refreshSelectedToolForLanguage();
+    })().finally(() => {
+      languageRefreshInFlight = null;
+    });
+  });
+}
 
 export default useSaasToolsStore;

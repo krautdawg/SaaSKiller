@@ -1,3 +1,5 @@
+import { getLang } from '../lang';
+
 // API Base URL - from environment variable or default to localhost
 // Use ?? (nullish coalescing) to preserve empty string from production build
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
@@ -39,13 +41,15 @@ export const saasToolsApi = {
         sort = 'created_at',
         order = 'desc'
       } = options;
+      const lang = getLang();
 
       // Build query string
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
         sort,
-        order
+        order,
+        lang
       });
 
       if (category) params.append('category', category);
@@ -89,9 +93,10 @@ export const saasToolsApi = {
   getToolById: async (id) => {
     try {
       console.log('[SaaS Tools API] Fetching tool:', id);
+      const lang = getLang();
 
       const response = await withTimeout(
-        fetch(`${API_URL}/api/saas-tools/${id}`, {
+        fetch(`${API_URL}/api/saas-tools/${id}?lang=${encodeURIComponent(lang)}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -213,9 +218,10 @@ export const saasToolsApi = {
   searchAndAnalyze: async (toolName) => {
     try {
       console.log('[SaaS Tools API] Analyzing tool:', toolName);
+      const lang = getLang();
 
       const response = await withTimeout(
-        fetch(`${API_URL}/api/tools/search?q=${encodeURIComponent(toolName)}`, {
+        fetch(`${API_URL}/api/tools/search?q=${encodeURIComponent(toolName)}&lang=${encodeURIComponent(lang)}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'

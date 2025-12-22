@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ExternalLink, Users, DollarSign, ArrowRight } from 'lucide-react';
 import { formatTierPrice } from '../utils/tierPricing';
+import { useLang } from '../lang';
 
 /**
  * ToolCard Component
@@ -16,6 +17,7 @@ import { formatTierPrice } from '../utils/tierPricing';
  */
 const ToolCard = ({ tool }) => {
   const navigate = useNavigate();
+  const { t } = useLang();
   const [logoError, setLogoError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -82,7 +84,7 @@ const ToolCard = ({ tool }) => {
               {tool.name}
             </h3>
             {tool.category && (
-              <span className="inline-block mt-1 text-xs font-medium text-brand-secondary bg-brand-secondary/10
+              <span className="inline-block mt-1 text-sm font-medium text-brand-secondary bg-brand-secondary/10
                              px-2 py-1 rounded">
                 {tool.category}
               </span>
@@ -96,7 +98,7 @@ const ToolCard = ({ tool }) => {
             onClick={handleExternalClick}
             className="flex-shrink-0 p-2 text-gray-400 hover:text-brand-secondary
                      transition-colors duration-200 rounded-lg hover:bg-gray-50"
-            aria-label="Visit website"
+            aria-label={t('detail.visitWebsite')}
           >
             <ExternalLink className="w-4 h-4" />
           </button>
@@ -105,19 +107,19 @@ const ToolCard = ({ tool }) => {
 
       {/* Short Description */}
       <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2 min-h-[3rem] relative z-10">
-        {tool.short_description || tool.description || 'No description available'}
+        {tool.short_description || tool.description || t('browser.noDescription')}
       </p>
 
       {/* Feature Count */}
       <div className="flex items-center gap-4 text-sm text-gray-500 mb-4 relative z-10">
         <div className="flex items-center gap-1">
           <span className="font-medium text-brand-text">{coreFeatures.length}</span>
-          <span>core features</span>
+          <span>{t('detail.core').toLowerCase()} {t('browser.features')}</span>
         </div>
         {bloatyFeatures.length > 0 && (
           <div className="flex items-center gap-1">
             <span className="font-medium text-gray-500">{bloatyFeatures.length}</span>
-            <span>bloat features</span>
+            <span>{t('detail.bloat').toLowerCase()} {t('browser.features')}</span>
           </div>
         )}
       </div>
@@ -129,7 +131,7 @@ const ToolCard = ({ tool }) => {
             <>
               <DollarSign className="w-4 h-4 text-brand-secondary" />
               <span className="text-sm font-medium text-brand-text">
-                From {formatTierPrice(firstTier, 'card')}
+                {t('browser.from')} {formatTierPrice(firstTier, 'card')}
               </span>
             </>
           )}
@@ -137,7 +139,7 @@ const ToolCard = ({ tool }) => {
 
         <span className="text-sm font-medium text-brand-secondary inline-flex items-center gap-1
                        opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          View details <ArrowRight className="w-4 h-4" />
+          {t('browser.viewDetails')} <ArrowRight className="w-4 h-4" />
         </span>
       </div>
     </div>

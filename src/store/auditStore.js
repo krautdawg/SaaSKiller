@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { saasToolsApi } from '../services/saasToolsApi';
 
 const useAuditStore = create((set, get) => ({
   currentStep: 'search', // 'search', 'audit', 'results'
@@ -210,5 +211,78 @@ const useAuditStore = create((set, get) => ({
     };
   }
 }));
+
+function parseFeatureArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+let languageRefreshInFlight = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener('languagechange', () => {
+    if (languageRefreshInFlight) return;
+
+    const state = useAuditStore.getState();
+    const toolId = state.selectedTool?.id;
+    if (!toolId) return;
+
+    languageRefreshInFlight = (async () => {
+      try {
+        const oldTool = state.selectedTool;
+        const oldChecked = state.checkedFeatures || {};
+
+        const newTool = await saasToolsApi.getToolById(toolId);
+
+        const oldFeatures = parseFeatureArray(oldTool?.features);
+        const newFeatures = parseFeatureArray(newTool?.features);
+
+        const nextChecked = {};
+        if (oldFeatures.length > 0 && oldFeatures.length === newFeatures.length) {
+          for (let i = 0; i < newFeatures.length; i++) {
+            const oldName = oldFeatures[i]?.name;
+            const newName = newFeatures[i]?.name;
+            if (newName) {
+              nextChecked[newName] = oldName ? !!oldChecked[oldName] : false;
+            }
+          }
+        } else {
+          for (const feature of newFeatures) {
+            if (feature?.name) {
+              nextChecked[feature.name] = !!oldChecked[feature.name];
+            }
+          }
+        }
+
+        const prevTierId = state.selectedTier?.id;
+        const prevTierOrder = state.selectedTier?.tier_order;
+        const tiers = Array.isArray(newTool.subscription_tiers) ? newTool.subscription_tiers : [];
+        const nextTier =
+          (prevTierId != null ? tiers.find(t => t.id === prevTierId) : null) ||
+          (prevTierOrder != null ? tiers.find(t => t.tier_order === prevTierOrder) : null) ||
+          state.selectedTier;
+
+        useAuditStore.setState({
+          selectedTool: newTool,
+          checkedFeatures: nextChecked,
+          selectedTier: nextTier
+        }, false);
+      } catch (error) {
+        // Ignore refresh errors (e.g., tool not in DB)
+        console.warn('[AuditStore] Failed to refresh tool for language change:', error?.message || error);
+      }
+    })().finally(() => {
+      languageRefreshInFlight = null;
+    });
+  });
+}
 
 export default useAuditStore;

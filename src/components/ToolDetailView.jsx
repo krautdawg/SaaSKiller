@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import useSaasToolsStore from '../store/saasToolsStore';
+import { useLang } from '../lang';
 import FeatureList from './FeatureList';
 import TierSelector from './TierSelector';
 import CostCalculator from './CostCalculator';
@@ -20,6 +21,7 @@ import CostCalculator from './CostCalculator';
 const ToolDetailView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLang();
   const [logoError, setLogoError] = useState(false);
 
   const {
@@ -173,7 +175,7 @@ const ToolDetailView = () => {
       <div className="min-h-screen bg-brand-surface flex items-center justify-center px-6">
         <div className="max-w-md w-full bg-white rounded-card border border-red-200 p-8 text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-brand-text mb-2">Error Loading Tool</h2>
+          <h2 className="text-xl font-semibold text-brand-text mb-2">{t('error.title')}</h2>
           <p className="text-gray-600 mb-6">{toolError}</p>
           <div className="flex gap-3 justify-center">
             <button
@@ -181,14 +183,14 @@ const ToolDetailView = () => {
               className="px-4 py-2 border border-gray-300 rounded-button text-sm font-medium
                        text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              Back to Browse
+              {t('detail.backToBrowse')}
             </button>
             <button
               onClick={() => fetchToolById(id)}
               className="px-4 py-2 bg-brand-secondary text-white rounded-button text-sm font-medium
                        hover:bg-brand-secondary/90 transition-colors"
             >
-              Try Again
+              {t('error.retry')}
             </button>
           </div>
         </div>
@@ -201,14 +203,14 @@ const ToolDetailView = () => {
     return (
       <div className="min-h-screen bg-brand-surface flex items-center justify-center px-6">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-brand-text mb-2">Tool Not Found</h2>
-          <p className="text-gray-600 mb-6">The tool you're looking for doesn't exist.</p>
+          <h2 className="text-xl font-semibold text-brand-text mb-2">{t('detail.notFound')}</h2>
+          <p className="text-gray-600 mb-6">{t('detail.notFoundMessage')}</p>
           <button
             onClick={handleBack}
             className="px-4 py-2 bg-brand-secondary text-white rounded-button text-sm font-medium
                      hover:bg-brand-secondary/90 transition-colors"
           >
-            Back to Browse
+            {t('detail.backToBrowse')}
           </button>
         </div>
       </div>
@@ -227,14 +229,14 @@ const ToolDetailView = () => {
                      transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Browse
+            {t('detail.backToBrowse')}
           </button>
 
           {/* Tool Header */}
           <div className="flex items-start justify-between gap-6">
             <div className="flex items-start gap-4 flex-1">
               {/* Logo */}
-              <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+              <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden relative">
                 {selectedTool.logo_url && !logoError ? (
                   <img
                     src={selectedTool.logo_url}
@@ -276,7 +278,7 @@ const ToolDetailView = () => {
                          transition-colors shadow-button hover:shadow-button-hover"
               >
                 <ExternalLink className="w-4 h-4" />
-                Visit Website
+                {t('detail.visitWebsite')}
               </button>
             )}
           </div>
@@ -324,7 +326,7 @@ const ToolDetailView = () => {
             {/* No Features Message */}
             {coreFeatures.length === 0 && bloatyFeatures.length === 0 && (
               <div className="bg-white rounded-card border border-gray-200 p-8 text-center">
-                <p className="text-gray-500">No feature information available for this tool.</p>
+                <p className="text-gray-500">{t('detail.noFeatures')}</p>
               </div>
             )}
           </div>

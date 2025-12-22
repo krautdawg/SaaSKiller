@@ -96,7 +96,8 @@ async function processEmailJob(job) {
       buildCostMin: parseFloat(auditData.build_cost_min),
       buildCostMax: parseFloat(auditData.build_cost_max),
       savingsAmount: parseFloat(auditData.savings_amount),
-      roiMonths: auditData.roi_months
+      roiMonths: auditData.roi_months,
+      language: auditData.language || 'en'
     });
 
     // Step 4: Update database with success status

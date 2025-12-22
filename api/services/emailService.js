@@ -1,5 +1,6 @@
 import { sendEmail, providerEmail } from '../config/email.js';
 import { generateAuditPDF, deletePDF } from './pdfService.js';
+import { getStrings } from './i18nService.js';
 import handlebars from 'handlebars';
 import fs from 'fs';
 import path from 'path';
@@ -17,6 +18,22 @@ const __dirname = path.dirname(__filename);
  * - Dual notification (user + provider)
  * - Error handling and cleanup
  */
+
+/**
+ * Helper to convert dot-notation keys to underscore-notation for Handlebars
+ * e.g., 'hero.title' -> 'hero_title'
+ */
+function getTemplateStrings(lang) {
+  const strings = getStrings(lang);
+  const templateStrings = {};
+  
+  Object.keys(strings).forEach(key => {
+    const newKey = key.replace(/\./g, '_');
+    templateStrings[newKey] = strings[key];
+  });
+  
+  return templateStrings;
+}
 
 /**
  * Load and compile email template
@@ -40,9 +57,14 @@ function loadTemplate(templateName) {
  */
 export async function sendUserEmail(auditData, pdfPath) {
   try {
+    const lang = auditData.language || 'en';
+    const t = getTemplateStrings(lang);
+    const rawStrings = getStrings(lang); // Get raw strings for subject line interpolation
+
     // Load and render template
     const template = loadTemplate('user-audit-report');
     const html = template({
+      t, // Pass localized strings object
       name: auditData.name,
       toolName: auditData.toolName,
       bleedAmount: auditData.bleedAmount.toLocaleString(),
@@ -58,7 +80,9 @@ export async function sendUserEmail(auditData, pdfPath) {
     // Send email with PDF attachment
     const result = await sendEmail({
       to: auditData.email,
-      subject: `Save $${auditData.savingsAmount.toLocaleString()} - Your ${auditData.toolName} Audit`,
+      subject: rawStrings['results.savings'] ? 
+        rawStrings['results.savings'](auditData.savingsAmount.toLocaleString()) : 
+        `Save $${auditData.savingsAmount.toLocaleString()} - Your ${auditData.toolName} Audit`,
       html,
       attachments: [
         {

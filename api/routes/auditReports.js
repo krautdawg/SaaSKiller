@@ -99,7 +99,8 @@ const AuditReportSchema = z
       .int('ROI months must be integer')
       .positive('ROI months must be positive')
       .optional()
-      .nullable()
+      .nullable(),
+    language: z.enum(['en', 'de']).default('en')
   })
   .refine((data) => data.buildCostMin <= data.buildCostMax, {
     message: 'Build cost min must be less than or equal to build cost max',
@@ -145,10 +146,11 @@ router.post('/', auditReportLimiter, async (req, res) => {
       buildCostMin,
       buildCostMax,
       savingsAmount,
-      roiMonths
+      roiMonths,
+      language
     } = validationResult.data;
 
-    console.log(`📧 Queuing audit report for ${email} (${toolName})`);
+    console.log(`📧 Queuing audit report for ${email} (${toolName}) [${language}]`);
 
     // Step 2: Insert into database
     const insertResult = await pool.query(
@@ -156,8 +158,8 @@ router.post('/', auditReportLimiter, async (req, res) => {
         name, email, tool_id, tool_name, tier_id, tier_name, team_size,
         features_kept, features_removed, custom_features,
         bleed_amount, build_cost_min, build_cost_max, savings_amount, roi_months,
-        status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        language, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
       RETURNING id`,
       [
         name,
@@ -175,6 +177,7 @@ router.post('/', auditReportLimiter, async (req, res) => {
         buildCostMax,
         savingsAmount,
         roiMonths,
+        language,
         'pending'
       ]
     );
@@ -185,7 +188,8 @@ router.post('/', auditReportLimiter, async (req, res) => {
     const job = await addEmailJob({
       reportId,
       email,
-      toolName
+      toolName,
+      language
     });
 
     // Step 4: Update status to 'queued'

@@ -7,42 +7,44 @@ SaaSKiller is a lead-generation tool designed to help small business owners calc
 The application is a **React Single Page Application (SPA)** built with **Vite** and **Tailwind CSS**. 
 
 **Current Status (Dec 2025):** 
-The application has undergone significant UI/UX polish to meet "FANG-level" standards (animations, skeletons, accessibility). The backend has been migrated from PocketBase to a custom **Express.js + PostgreSQL** API to support advanced features like AI-powered tool analysis via Perplexity.
+The application is feature-complete for the core audit loop. It features real-time AI-powered tool analysis, a localized multi-language interface (EN/DE), and automated PDF report generation via background workers.
 
 ### Architecture Highlights
 
 *   **Frontend:** React 18 + Vite + Tailwind CSS.
 *   **Styling:** Custom design system (`tailwind.config.js`) with semantic colors and animations.
 *   **State Management:** Zustand (`src/store/auditStore.js`, `src/store/saasToolsStore.js`).
+*   **i18n:** Custom zero-dependency translation system (`src/lang.js`) with automatic domain detection (.de).
 *   **Backend:** Express.js API (`api/server.js`) connected to a PostgreSQL database.
-    *   **Database:** PostgreSQL (hosted locally or via Supabase/Neon in prod).
-    *   **AI Integration:** Perplexity API for real-time SaaS tool analysis and feature extraction.
-    *   **Security:** Rate limiting, Helmet, CORS configured.
+    *   **Database:** PostgreSQL with automated schema initialization and audit report storage.
+    *   **AI Integration:** Perplexity API (sonar-pro) for flexible SaaS feature extraction (Min 10/Max 50 core features).
+    *   **Queue System:** Bull (Redis) for processing background email and PDF generation jobs.
+    *   **Security:** Rate limiting, Helmet, CORS, and Zod validation.
 
 ## Directory Structure
 
 *   **`api/`**: Backend API.
-    *   **`server.js`**: Main Express entry point.
-    *   **`db.js`**: PostgreSQL connection pool configuration.
-    *   **`perplexity.js`**: AI analysis service.
+    *   **`server.js`**: Main Express entry point & DB initialization.
+    *   **`perplexity.js`**: AI analysis service with feature prioritization logic.
+    *   **`services/`**: Email, PDF, and i18n backend services.
+    *   **`workers/`**: Background job processors (Email/PDF).
+    *   **`templates/`**: Localized Handlebars email templates.
 *   **`src/`**: Main frontend source code.
-    *   **`assets/`**: Static assets (images, logo).
-    *   **`components/`**: React components.
-        *   **`ToolSearch.jsx`**: Main entry point with AI analysis trigger.
-        *   **`ToolBrowser.jsx`**: Grid view of tools with skeleton loading.
-        *   **`PricingPage.jsx`**: Marketing page with ROI calculator and animated cards.
-        *   **`ToolDetailView.jsx`**: Detailed tool view with cost calculator.
-    *   **`store/`**: Zustand stores (`auditStore`, `saasToolsStore`).
-    *   **`services/`**: Frontend API clients (`api.js`).
-    *   **`lib/`**: Utilities.
-*   **`documentation/`**: Project documentation (Architecture, PRD, Polish Plans).
+    *   **`lang.js`**: Frontend translation dictionaries and robust language detection hook.
+    *   **`components/`**: Atomic React components.
+        *   **`AuditChecklist.jsx`**: Feature auditing with bulk toggle `[+]`/`[-]` and "Show More".
+        *   **`LanguageToggle.jsx`**: Global language switcher (EN/DE).
+        *   **`ToolSearch.jsx`**: AI-powered search entry point.
+        *   **`PricingPage.jsx`**: Fully localized marketing page with ROI calculator.
+    *   **`store/`**: Zustand stores for audit state and tool data.
+*   **`documentation/`**: Project documentation (PRD, Architecture, Implementation Briefs).
 
 ## Building and Running
 
 ### Prerequisites
 *   Node.js (v18+)
-*   PostgreSQL Database (running locally or cloud)
-*   `PERPLEXITY_API_KEY` (for AI analysis features)
+*   PostgreSQL & Redis (for background jobs)
+*   `PERPLEXITY_API_KEY` (API access)
 
 ### Environment Setup
 
@@ -54,48 +56,27 @@ The application has undergone significant UI/UX polish to meet "FANG-level" stan
 2.  **Backend (api/.env):**
     ```env
     DATABASE_URL=postgresql://user:password@localhost:5432/saaskiller
+    REDIS_URL=redis://localhost:6379
     PERPLEXITY_API_KEY=pplx-...
     PORT=3000
     ```
 
-### Development Commands
+## Recent Updates (Localization & AI Polish)
 
-1.  **Install Dependencies (Root & API):**
-    ```bash
-    npm install
-    cd api && npm install
-    ```
-
-2.  **Start Backend API:**
-    ```bash
-    cd api
-    npm run dev
-    ```
-    *Runs on http://localhost:3000*
-
-3.  **Start Frontend:**
-    ```bash
-    # In a new terminal
-    npm run dev
-    ```
-    *Runs on http://localhost:5173*
-
-## Recent Updates (Polish Phase)
-
-*   **Visual Polish:**
-    *   Updated Logo and Favicon.
-    *   Added smooth skeleton loading states for tool browsing.
-    *   Implemented lazy loading and fade-in effects for images.
-    *   Added micro-interactions (hover glows, sliding arrows, pulse effects).
-*   **Accessibility:**
-    *   Added "Skip to content" link.
-    *   Improved color contrast in footer and text elements.
-*   **Refactoring:**
-    *   Backend logic split into `db.js` and `perplexity.js` (Work in Progress integration).
+*   **Language Toggle (EN/DE):**
+    *   Full translation coverage across all frontend pages and backend communications.
+    *   Robust detection: URL params (`?lang=de`) > Hostname (`.de` domain) > LocalStorage > Browser.
+    *   Localized PDF reports and automated emails.
+*   **AI Analysis Logic:**
+    *   Optimized feature extraction: Requests 10-50 core and 5-20 bloaty features based on tool complexity.
+    *   Smart defaults: Audit starts with top 5 core features checked and all bloaty features unchecked.
+*   **Audit UI Improvements:**
+    *   Implemented `[+]` / `[-]` bulk toggles for core and bloaty sections.
+    *   Added "Show More" functionality to keep the UI clean (Default: 10 core, 6 bloaty).
+    *   Fixed timeline comparisons (Weeks for SaaSKiller vs Months for Agencies).
 
 ## Development Conventions
 
-*   **Styling:** Use Tailwind utility classes. Avoid inline styles.
-*   **State:** Use Zustand for global state.
-*   **Components:** Functional, atomic components.
-*   **Backend:** ES Modules (`import/export`).
+*   **Localization:** Use `t('key.name')` for all text. Sync `src/lang.js` with `api/services/i18nService.js`.
+*   **State:** Use Zustand for global state; local `useState` only for UI-only toggles.
+*   **Backend:** ES Modules. Use the `i18nService` for any user-facing strings in emails or PDFs.

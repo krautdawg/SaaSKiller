@@ -71,6 +71,102 @@ app.use((req, res, next) => {
   next();
 });
 
+function getRequestLang(req) {
+  const lang = String(req.query?.lang || '').toLowerCase();
+  return lang === 'de' ? 'de' : 'en';
+}
+
+function parseJsonbArray(value) {
+  if (!value) return null;
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function parseJsonArray(value) {
+  if (!value) return null;
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function localizeTool(tool, lang) {
+  if (!tool) return tool;
+
+  const fields = ['features', 'core_features', 'bloaty_features'];
+
+  const tiers = parseJsonArray(tool.subscription_tiers);
+
+  if (lang === 'de') {
+    for (const field of fields) {
+      const baseArray = parseJsonbArray(tool[field]) ?? tool[field];
+      const translatedArray = parseJsonbArray(tool[`${field}_de`]) ?? tool[`${field}_de`];
+      if (Array.isArray(translatedArray) && translatedArray.length > 0) {
+        tool[field] = translatedArray;
+      } else {
+        tool[field] = baseArray;
+      }
+    }
+
+    if (typeof tool.short_description_de === 'string' && tool.short_description_de.trim()) {
+      tool.short_description = tool.short_description_de;
+    }
+    if (typeof tool.description_de === 'string' && tool.description_de.trim()) {
+      tool.description = tool.description_de;
+    }
+
+    if (tiers) {
+      tool.subscription_tiers = tiers.map((tier) => {
+        const nextTier = { ...tier };
+
+        if (typeof nextTier.tier_name_de === 'string' && nextTier.tier_name_de.trim()) {
+          nextTier.tier_name = nextTier.tier_name_de;
+          nextTier.name = nextTier.tier_name_de;
+        }
+        if (typeof nextTier.notes_de === 'string' && nextTier.notes_de.trim()) {
+          nextTier.notes = nextTier.notes_de;
+        }
+
+        delete nextTier.tier_name_de;
+        delete nextTier.notes_de;
+
+        return nextTier;
+      });
+    }
+  }
+
+  if (lang !== 'de' && tiers) {
+    tool.subscription_tiers = tiers.map((tier) => {
+      const nextTier = { ...tier };
+      delete nextTier.tier_name_de;
+      delete nextTier.notes_de;
+      return nextTier;
+    });
+  }
+
+  for (const field of fields) {
+    delete tool[`${field}_de`];
+  }
+  delete tool.short_description_de;
+  delete tool.description_de;
+
+  return tool;
+}
+
 // Database initialization - Auto-create tables on startup
 async function initializeDatabase() {
   const client = await pool.connect();
@@ -173,6 +269,32 @@ async function initializeDatabase() {
                       WHERE table_name='tools' AND column_name='bloaty_features') THEN
           ALTER TABLE tools ADD COLUMN bloaty_features JSONB DEFAULT '[]'::jsonb;
         END IF;
+
+        -- Add German translation columns
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='features_de') THEN
+          ALTER TABLE tools ADD COLUMN features_de JSONB DEFAULT '[]'::jsonb;
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='core_features_de') THEN
+          ALTER TABLE tools ADD COLUMN core_features_de JSONB DEFAULT '[]'::jsonb;
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='bloaty_features_de') THEN
+          ALTER TABLE tools ADD COLUMN bloaty_features_de JSONB DEFAULT '[]'::jsonb;
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='short_description_de') THEN
+          ALTER TABLE tools ADD COLUMN short_description_de TEXT;
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_name='tools' AND column_name='description_de') THEN
+          ALTER TABLE tools ADD COLUMN description_de TEXT;
+        END IF;
       END $$
     `);
 
@@ -191,6 +313,13 @@ async function initializeDatabase() {
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    // Add German translation columns to subscription_tiers
+    await client.query(`
+      ALTER TABLE subscription_tiers
+        ADD COLUMN IF NOT EXISTS tier_name_de VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS notes_de TEXT
     `);
 
     // Add database constraints (data integrity fixes)
@@ -273,6 +402,15 @@ async function initializeDatabase() {
       CREATE INDEX IF NOT EXISTS idx_tools_is_published ON tools(is_published)
     `);
     await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_tools_features_de ON tools USING gin(features_de)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_tools_core_features_de ON tools USING gin(core_features_de)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_tools_bloaty_features_de ON tools USING gin(bloaty_features_de)
+    `);
+    await client.query(`
       CREATE INDEX IF NOT EXISTS idx_subscription_tiers_tool_id ON subscription_tiers(tool_id)
     `);
     await client.query(`
@@ -288,6 +426,19 @@ async function initializeDatabase() {
         bleed_amount NUMERIC NOT NULL,
         created_at TIMESTAMP DEFAULT NOW()
       )
+    `);
+
+    // Ensure audit_reports has language column
+    await client.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_reports') THEN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                        WHERE table_name='audit_reports' AND column_name='language') THEN
+            ALTER TABLE audit_reports ADD COLUMN language VARCHAR(10) DEFAULT 'en';
+          END IF;
+        END IF;
+      END $$
     `);
 
     console.log('[DB] ✅ Database schema initialized successfully');
@@ -313,6 +464,7 @@ app.get('/api/health', (req, res) => {
 // Search tools endpoint (AI-powered, rate limited)
 app.get('/api/tools/search', aiLimiter, async (req, res) => {
   const query = req.query.q;
+  const lang = getRequestLang(req);
 
   if (!query) {
     return res.status(400).json({ error: 'Missing query parameter "q"' });
@@ -338,7 +490,9 @@ app.get('/api/tools/search', aiLimiter, async (req, res) => {
                     'price_yearly', st.price_yearly,
                     'price_model', st.price_model,
                     'user_limit', st.user_limit,
-                    'notes', st.notes
+                    'notes', st.notes,
+                    'tier_name_de', st.tier_name_de,
+                    'notes_de', st.notes_de
                   ) ORDER BY st.tier_order
                 ) FILTER (WHERE st.id IS NOT NULL),
                 '[]'::json
@@ -356,7 +510,7 @@ app.get('/api/tools/search', aiLimiter, async (req, res) => {
     // 2. If found in cache, return immediately
     if (searchResult.rows.length > 0) {
       console.log(`[API] ✅ Cache hit for: ${query}`);
-      return res.json(searchResult.rows[0]);
+      return res.json(localizeTool(searchResult.rows[0], lang));
     }
 
     // 3. Not found - call Perplexity API
@@ -445,7 +599,9 @@ app.get('/api/tools/search', aiLimiter, async (req, res) => {
                     'price_yearly', st.price_yearly,
                     'price_model', st.price_model,
                     'user_limit', st.user_limit,
-                    'notes', st.notes
+                    'notes', st.notes,
+                    'tier_name_de', st.tier_name_de,
+                    'notes_de', st.notes_de
                   ) ORDER BY st.tier_order
                 ) as subscription_tiers
          FROM tools t
@@ -458,7 +614,7 @@ app.get('/api/tools/search', aiLimiter, async (req, res) => {
       console.log(`[API] ✅ Saved to database: ${toolData.name}`);
 
       // 5. Return the newly created tool with tiers
-      res.json(completeToolResult.rows[0]);
+      res.json(localizeTool(completeToolResult.rows[0], lang));
 
     } catch (error) {
       await client.query('ROLLBACK');
@@ -518,8 +674,9 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
 // Get all tools (for admin/debugging)
 app.get('/api/tools', async (req, res) => {
   try {
+    const lang = getRequestLang(req);
     const result = await pool.query('SELECT * FROM tools ORDER BY created_at DESC');
-    res.json({ tools: result.rows, count: result.rows.length });
+    res.json({ tools: result.rows.map((t) => localizeTool(t, lang)), count: result.rows.length });
   } catch (error) {
     console.error('[API] ❌ Error fetching tools:', error);
     res.status(500).json({ error: 'Failed to fetch tools' });
@@ -537,6 +694,7 @@ app.get('/api/saas-tools', async (req, res) => {
       sort = 'created_at',
       order = 'desc'
     } = req.query;
+    const lang = getRequestLang(req);
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const limitNum = parseInt(limit);
@@ -599,7 +757,9 @@ app.get('/api/saas-tools', async (req, res) => {
                   'price_yearly', st.price_yearly,
                   'price_model', st.price_model,
                   'user_limit', st.user_limit,
-                  'notes', st.notes
+                  'notes', st.notes,
+                  'tier_name_de', st.tier_name_de,
+                  'notes_de', st.notes_de
                 ) ORDER BY st.tier_order
               ) FILTER (WHERE st.id IS NOT NULL) as subscription_tiers
        FROM tools t
@@ -612,7 +772,7 @@ app.get('/api/saas-tools', async (req, res) => {
     );
 
     res.json({
-      tools: result.rows,
+      tools: result.rows.map((t) => localizeTool(t, lang)),
       pagination: {
         page: parseInt(page),
         limit: limitNum,
@@ -631,6 +791,7 @@ app.get('/api/saas-tools', async (req, res) => {
 app.get('/api/saas-tools/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const lang = getRequestLang(req);
 
     const result = await pool.query(
       `SELECT t.*,
@@ -645,7 +806,9 @@ app.get('/api/saas-tools/:id', async (req, res) => {
                   'price_yearly', st.price_yearly,
                   'price_model', st.price_model,
                   'user_limit', st.user_limit,
-                  'notes', st.notes
+                  'notes', st.notes,
+                  'tier_name_de', st.tier_name_de,
+                  'notes_de', st.notes_de
                 ) ORDER BY st.tier_order
               ) FILTER (WHERE st.id IS NOT NULL) as subscription_tiers
        FROM tools t
@@ -659,7 +822,7 @@ app.get('/api/saas-tools/:id', async (req, res) => {
       return res.status(404).json({ error: 'Tool not found' });
     }
 
-    res.json(result.rows[0]);
+    res.json(localizeTool(result.rows[0], lang));
 
   } catch (error) {
     console.error('[API] ❌ Error fetching tool:', error);

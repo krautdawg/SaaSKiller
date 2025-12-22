@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Check, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { useLang } from '../lang';
 
 /**
  * FeatureList Component
@@ -20,13 +21,14 @@ const FeatureList = ({
   type = 'core',
   initialVisibleCount = null
 }) => {
+  const { t } = useLang();
   const defaultVisibleCount = initialVisibleCount || (type === 'core' ? 20 : 10);
   const [showAll, setShowAll] = useState(false);
 
   if (!features || features.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 text-sm">
-        No {type} features listed
+        {t('detail.noFeatures')}
       </div>
     );
   }
@@ -37,16 +39,16 @@ const FeatureList = ({
 
   const typeConfig = {
     core: {
-      title: 'Core Features',
-      description: 'Essential features used by most customers',
+      title: t('audit.coreTitle'),
+      description: t('featureList.coreDesc'),
       icon: Check,
       iconColor: 'text-brand-secondary',
       bgColor: 'bg-brand-secondary/10',
       borderColor: 'border-brand-secondary/20'
     },
     bloaty: {
-      title: 'Advanced Features',
-      description: 'Additional features rarely used by most customers',
+      title: t('audit.bloatyTitle'),
+      description: t('featureList.bloatyDesc'),
       icon: Info,
       iconColor: 'text-gray-400',
       bgColor: 'bg-gray-100',
@@ -66,7 +68,7 @@ const FeatureList = ({
         </h3>
         <p className="text-sm text-gray-600 leading-relaxed">{config.description}</p>
         <p className="text-sm text-gray-500 mt-1">
-          Showing {visibleFeatures.length} of {features.length} features
+          {t('browser.showing', visibleFeatures.length, features.length)}
         </p>
       </div>
 
@@ -117,12 +119,12 @@ const FeatureList = ({
           {showAll ? (
             <>
               <ChevronUp className="w-4 h-4" />
-              Show Less
+              {t('audit.showLess')}
             </>
           ) : (
             <>
               <ChevronDown className="w-4 h-4" />
-              Show {remainingCount} More {type === 'core' ? 'Core' : 'Advanced'} Feature{remainingCount !== 1 ? 's' : ''}
+              {t('audit.showMore', remainingCount, type === 'core' ? 'Core' : 'Advanced')}
             </>
           )}
         </button>
@@ -131,7 +133,7 @@ const FeatureList = ({
       {/* All Features Shown Indicator */}
       {showAll && (
         <div className="mt-3 text-center text-sm text-gray-500">
-          All {features.length} {type} features displayed
+          {t('featureList.allShown', features.length, type === 'core' ? 'Core' : 'Advanced')}
         </div>
       )}
     </div>

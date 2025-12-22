@@ -39,10 +39,15 @@ async function refreshAllTools() {
              short_description = $4,
              core_features = $5,
              bloaty_features = $6,
+             core_features_de = '[]'::jsonb,
+             bloaty_features_de = '[]'::jsonb,
+             short_description_de = NULL,
+             description_de = NULL,
              updated_at = NOW(),
              -- Update legacy fields too
              monthly_cost = $7,
              features = $8,
+             features_de = '[]'::jsonb,
              description = $9
            WHERE id = $10`,
           [

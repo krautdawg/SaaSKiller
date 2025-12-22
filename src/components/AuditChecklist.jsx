@@ -83,7 +83,7 @@ const AuditChecklist = () => {
             onClick={() => setShowAllCoreFeatures(true)}
             className="mt-4 w-full py-2 text-sm text-brand-secondary hover:text-brand-secondary/80 font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Show {remainingCoreCount} more core features
+            {t('audit.showMore', remainingCoreCount, 'core')}
           </button>
         )}
         {showAllCoreFeatures && coreFeatures.length > 10 && (
@@ -91,7 +91,7 @@ const AuditChecklist = () => {
             onClick={() => setShowAllCoreFeatures(false)}
             className="mt-4 w-full py-2 text-sm text-gray-600 hover:text-gray-800 font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Show less
+            {t('audit.showLess')}
           </button>
         )}
       </div>
@@ -101,9 +101,9 @@ const AuditChecklist = () => {
         <div className="p-4 rounded-xl border bg-white border-red-50 border-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
           <div className="flex justify-between items-center mb-3 border-b pb-2">
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-bold font-heading">Bloaty Features</h3>
+              <h3 className="text-lg font-bold font-heading">{t('audit.bloatyTitle')}</h3>
               <span className="text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-700">
-                {getBloatPercentage()}% of features that are bloat killed
+                {t('audit.bloatKilled', getBloatPercentage())}
               </span>
             </div>
             <div className="flex gap-2">
@@ -111,13 +111,13 @@ const AuditChecklist = () => {
                 onClick={() => setAllFeatures(bloatyFeatures, true)}
                 className="text-xs font-medium text-brand-secondary hover:text-brand-primary transition-colors"
               >
-                [+ All]
+                {t('audit.selectAll')}
               </button>
               <button
                 onClick={() => setAllFeatures(bloatyFeatures, false)}
                 className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors"
               >
-                [- All]
+                {t('audit.deselectAll')}
               </button>
             </div>
           </div>
@@ -135,7 +135,7 @@ const AuditChecklist = () => {
                   <span className={`${!checkedFeatures[feature.name] ? 'line-through text-gray-400' : 'text-brand-text'}`}>
                     {feature.name}
                   </span>
-                  <span className="ml-1 text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded uppercase font-bold">Bloat</span>
+                  <span className="ml-1 text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded uppercase font-bold">{t('audit.bloatBadge')}</span>
                 </div>
               </label>
             ))}
@@ -147,7 +147,7 @@ const AuditChecklist = () => {
               onClick={() => setShowAllBloatyFeatures(true)}
               className="mt-4 w-full py-2 text-sm text-brand-secondary hover:text-brand-secondary/80 font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Show {remainingBloatyCount} more bloaty features
+              {t('audit.showMore', remainingBloatyCount, 'bloaty')}
             </button>
           )}
           {showAllBloatyFeatures && bloatyFeatures.length > 6 && (
@@ -155,7 +155,7 @@ const AuditChecklist = () => {
               onClick={() => setShowAllBloatyFeatures(false)}
               className="mt-4 w-full py-2 text-sm text-gray-600 hover:text-gray-800 font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Show less
+              {t('audit.showLess')}
             </button>
           )}
         </div>
@@ -163,11 +163,11 @@ const AuditChecklist = () => {
 
       {/* Custom Features Box */}
       <div className="p-4 rounded-xl border bg-white border-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
-        <h4 className="text-lg font-bold mb-2 font-heading">Add Custom "Vibe" Features</h4>
+        <h4 className="text-lg font-bold mb-2 font-heading">{t('audit.customTitle')}</h4>
         <form onSubmit={handleAddCustom} className="flex gap-2">
             <input 
               type="text" 
-              placeholder="+ Add custom AI workflow..."
+              placeholder={t('audit.customInputPlaceholder')}
               className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-secondary font-sans"
               value={newFeatureInput}
               onChange={(e) => setNewFeatureInput(e.target.value)}
@@ -176,7 +176,7 @@ const AuditChecklist = () => {
                 type="submit"
                 className="bg-brand-primary text-brand-text hover:bg-yellow-400 px-6 py-2 rounded-lg font-bold transition-all transform duration-200 hover:-translate-y-1 shadow-md font-sans"
             >
-                Add
+                {t('audit.add')}
             </button>
           </form>
           {customFeatures.length > 0 && (
@@ -197,12 +197,12 @@ const AuditChecklist = () => {
                       <span>✨ {f.name}</span>
                       {f.isAnalyzing && (
                         <span className="text-xs text-yellow-600 animate-pulse">
-                          Analyzing...
+                          {t('audit.analyzing')}
                         </span>
                       )}
                       {f.isFallback && !f.isAnalyzing && (
                         <span className="text-xs text-yellow-600" title="Used default estimate">
-                          (est.)
+                          {t('audit.estimateLabel')}
                         </span>
                       )}
                     </div>

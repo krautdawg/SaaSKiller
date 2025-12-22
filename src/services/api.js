@@ -1,3 +1,5 @@
+import { getLang } from '../lang';
+
 // API Base URL - from environment variable or default to localhost
 // Use ?? (nullish coalescing) to preserve empty string from production build
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
@@ -56,6 +58,7 @@ export const api = {
     try {
       // 1. Normalize query
       const normalizedQuery = query.trim();
+      const lang = getLang();
 
       if (!normalizedQuery) {
         throw new Error('Search query is required');
@@ -65,7 +68,7 @@ export const api = {
 
       // 2. Call the Express backend API with timeout
       const response = await withTimeout(
-        fetch(`${API_URL}/api/tools/search?q=${encodeURIComponent(normalizedQuery)}`, {
+        fetch(`${API_URL}/api/tools/search?q=${encodeURIComponent(normalizedQuery)}&lang=${encodeURIComponent(lang)}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'

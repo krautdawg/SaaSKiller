@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Loader2, AlertCircle, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import useSaasToolsStore from '../store/saasToolsStore';
+import { useLang } from '../lang';
 import ToolCard from './ToolCard';
 import CategoryFilter from './CategoryFilter';
 
@@ -17,6 +18,7 @@ import CategoryFilter from './CategoryFilter';
  */
 const ToolBrowser = () => {
   const navigate = useNavigate();
+  const { t } = useLang();
 
   const {
     tools,
@@ -80,10 +82,10 @@ const ToolBrowser = () => {
       <div className="bg-white border-b border-gray-200">
         <div className="max-width-7xl mx-auto px-6 py-8">
           <h1 className="text-3xl font-bold text-brand-text mb-2">
-            Browse SaaS Tools
+            {t('browser.title')}
           </h1>
           <p className="text-gray-600">
-            Discover the features and pricing of 100+ popular SaaS tools
+            {t('browser.subtitle')}
           </p>
         </div>
       </div>
@@ -98,7 +100,7 @@ const ToolBrowser = () => {
               type="text"
               value={localSearchQuery}
               onChange={handleSearchChange}
-              placeholder="Search tools by name or description..."
+              placeholder={t('browser.search')}
               className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-button
                        focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-transparent
                        text-sm placeholder:text-gray-400"
@@ -124,10 +126,10 @@ const ToolBrowser = () => {
         {/* Results Count */}
         {!isLoadingTools && !toolsError && (
           <div className="mb-6 text-sm text-gray-600">
-            Showing {tools.length} of {pagination.total} tools
+            {t('browser.showing', tools.length, pagination.total)}
             {searchQuery && (
               <span className="ml-1">
-                matching "<span className="font-semibold">{searchQuery}</span>"
+                {t('browser.matching', searchQuery)}
               </span>
             )}
           </div>
@@ -167,14 +169,14 @@ const ToolBrowser = () => {
           <div className="bg-red-50 border border-red-200 rounded-card p-6 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-red-900 mb-1">Error loading tools</h3>
+              <h3 className="font-semibold text-red-900 mb-1">{t('error.title')}</h3>
               <p className="text-sm text-red-700">{toolsError}</p>
               <button
                 onClick={() => fetchTools()}
                 className="mt-3 px-4 py-2 bg-red-600 text-white rounded-button text-sm
                          hover:bg-red-700 transition-colors duration-200"
               >
-                Try again
+                {t('error.retry')}
               </button>
             </div>
           </div>
@@ -188,10 +190,10 @@ const ToolBrowser = () => {
             {searchQuery ? (
               <>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  "{searchQuery}" not found in our database
+                  {t('browser.notFound', searchQuery)}
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Want us to analyze it with AI?
+                  {t('browser.analyzePrompt')}
                 </p>
 
                 {!isAnalyzing && !analyzeError && (
@@ -205,7 +207,7 @@ const ToolBrowser = () => {
                              flex items-center gap-2 mx-auto shadow-lg transition-all duration-200"
                   >
                     <Sparkles className="w-5 h-5" />
-                    Analyze {searchQuery} with AI
+                    {t('browser.analyzeButton', searchQuery)}
                   </button>
                 )}
 
@@ -213,9 +215,9 @@ const ToolBrowser = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-center gap-3">
                       <Loader2 className="w-6 h-6 animate-spin text-brand-secondary" />
-                      <span className="text-gray-700 font-medium">Analyzing {searchQuery}...</span>
+                      <span className="text-gray-700 font-medium">{t('search.auditing', searchQuery)}</span>
                     </div>
-                    <p className="text-sm text-gray-500">This may take 10-20 seconds</p>
+                    <p className="text-sm text-gray-500">{t('browser.analyzeNote')}</p>
                   </div>
                 )}
 
@@ -226,7 +228,7 @@ const ToolBrowser = () => {
                       onClick={handleAnalyzeTool}
                       className="text-sm text-red-600 hover:underline font-medium"
                     >
-                      Try again
+                      {t('error.retry')}
                     </button>
                   </div>
                 )}
@@ -234,26 +236,26 @@ const ToolBrowser = () => {
             ) : pagination.page > 1 ? (
               <>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No more tools
+                  {t('browser.noMore')}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Try adjusting your filters or going back
+                  {t('browser.adjustFilters')}
                 </p>
                 <button
                   onClick={handleClearSearch}
                   className="px-4 py-2 bg-brand-secondary text-white rounded-button text-sm
                            hover:bg-brand-secondary/90 transition-colors duration-200"
                 >
-                  Clear all filters
+                  {t('browser.clearFilters')}
                 </button>
               </>
             ) : (
               <>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No tools found
+                  {t('browser.noResults')}
                 </h3>
                 <p className="text-gray-600">
-                  No tools are available at the moment
+                  {t('browser.noAvailable')}
                 </p>
               </>
             )}
@@ -274,7 +276,7 @@ const ToolBrowser = () => {
               <div className="flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-button">
                 {/* Page Info */}
                 <div className="text-sm text-gray-600">
-                  Page {pagination.page} of {pagination.totalPages}
+                  {t('browser.page', pagination.page, pagination.totalPages)}
                 </div>
 
                 {/* Navigation Buttons */}
@@ -287,7 +289,7 @@ const ToolBrowser = () => {
                              transition-all duration-200 flex items-center gap-2"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    Previous
+                    {t('browser.previous')}
                   </button>
 
                   <button
@@ -297,7 +299,7 @@ const ToolBrowser = () => {
                              text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed
                              transition-all duration-200 flex items-center gap-2"
                   >
-                    Next
+                    {t('browser.next')}
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>

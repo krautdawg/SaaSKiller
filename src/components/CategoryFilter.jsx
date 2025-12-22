@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Filter, X } from 'lucide-react';
 import useSaasToolsStore from '../store/saasToolsStore';
+import { useLang } from '../lang';
 
 /**
  * CategoryFilter Component
@@ -12,6 +13,7 @@ import useSaasToolsStore from '../store/saasToolsStore';
  * - Updates store when category is clicked
  */
 const CategoryFilter = () => {
+  const { t } = useLang();
   const {
     categories,
     selectedCategory,
@@ -42,7 +44,7 @@ const CategoryFilter = () => {
     return (
       <div className="flex items-center gap-2 mb-8">
         <Filter className="w-5 h-5 text-gray-400" />
-        <span className="text-sm text-gray-500">Loading categories...</span>
+        <span className="text-sm text-gray-500">{t('filter.loading')}</span>
       </div>
     );
   }
@@ -53,7 +55,7 @@ const CategoryFilter = () => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Filter className="w-5 h-5 text-brand-secondary" />
-          <h3 className="text-sm font-semibold text-brand-text">Filter by Category</h3>
+          <h3 className="text-sm font-semibold text-brand-text">{t('filter.title')}</h3>
         </div>
 
         {selectedCategory && (
@@ -63,7 +65,7 @@ const CategoryFilter = () => {
                      transition-colors duration-200"
           >
             <X className="w-4 h-4" />
-            Clear filter
+            {t('filter.clear')}
           </button>
         )}
       </div>
@@ -79,7 +81,7 @@ const CategoryFilter = () => {
                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                      }`}
         >
-          All Tools
+          {t('browser.all')} {t('audit.features')}
         </button>
 
         {/* Category Pills */}
@@ -106,10 +108,7 @@ const CategoryFilter = () => {
       {selectedCategory && (
         <div className="mt-4 px-4 py-2 bg-brand-secondary/10 rounded-lg border border-brand-secondary/20">
           <p className="text-sm text-brand-text leading-relaxed">
-            Showing tools in{' '}
-            <span className="font-semibold">
-              {categories.find(c => c.slug === selectedCategory)?.name}
-            </span>
+            {t('filter.showing', categories.find(c => c.slug === selectedCategory)?.name)}
           </p>
         </div>
       )}

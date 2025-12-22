@@ -1,44 +1,6 @@
-// Simple i18n - no dependencies needed
-import { useState, useEffect } from 'react';
+// Shared translation strings for backend services (Email, PDF)
+// Copied from src/lang.js to ensure consistency
 
-const STORAGE_KEY = 'lang';
-
-// Get initial language: URL param → Hostname → stored preference → browser → default
-function getInitialLang() {
-  if (typeof window === 'undefined') return 'en';
-
-  // 1. URL Query Parameter (?lang=de) - Highest priority override
-  const urlParams = new URLSearchParams(window.location.search);
-  const langParam = urlParams.get('lang');
-  if (langParam === 'en' || langParam === 'de') {
-    localStorage.setItem(STORAGE_KEY, langParam);
-    return langParam;
-  }
-
-  // 2. Hostname Detection (.de domain) - Zero-config localization
-  if (window.location.hostname.endsWith('.de')) {
-    return 'de';
-  }
-
-  // 3. Stored Preference
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === 'en' || stored === 'de') return stored;
-
-  // 4. Browser Language Detection
-  return navigator.language?.startsWith('de') ? 'de' : 'en';
-}
-
-let currentLang = getInitialLang();
-
-export const getLang = () => currentLang;
-
-export const setLang = (lang) => {
-  currentLang = lang;
-  localStorage.setItem(STORAGE_KEY, lang);
-  window.dispatchEvent(new Event('languagechange'));
-};
-
-// All translations in one place
 const strings = {
   en: {
     // Header/Hero
@@ -617,25 +579,26 @@ const strings = {
   }
 };
 
-// Translation function
-export const t = (key, ...args) => {
-  const value = strings[currentLang]?.[key];
+/**
+ * Get translation strings for a specific language
+ * @param {string} lang - 'en' or 'de'
+ * @returns {Object} Dictionary of translation strings
+ */
+export const getStrings = (lang = 'en') => {
+  return strings[lang] || strings['en'];
+};
+
+/**
+ * Helper to translate a key with optional parameters
+ * @param {Object} dict - Translation dictionary from getStrings()
+ * @param {string} key - Translation key (e.g., 'hero.title')
+ * @param {...any} args - Arguments for dynamic strings
+ * @returns {string} Translated string
+ */
+export const t = (dict, key, ...args) => {
+  const value = dict[key];
   if (typeof value === 'function') return value(...args);
-  return value || strings['en']?.[key] || key;
+  return value || key;
 };
 
-// Hook for React components that need to re-render on language change
-export const useLang = () => {
-  const [, forceUpdate] = useState(0);
-
-  useEffect(() => {
-    const handler = () => forceUpdate(n => n + 1);
-    window.addEventListener('languagechange', handler);
-    return () => window.removeEventListener('languagechange', handler);
-  }, []);
-
-  return { lang: currentLang, setLang, t };
-};
-
-// Export for backend use
-export const getStrings = (lang = 'en') => strings[lang] || strings['en'];
+export default { getStrings, t };
