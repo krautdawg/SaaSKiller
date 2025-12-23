@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 import { formatTierPrice } from '../utils/tierPricing';
+import { useLang } from '../lang';
 
 /**
  * TierSelector Component
@@ -18,6 +19,7 @@ import { formatTierPrice } from '../utils/tierPricing';
  * - onSelectTier: Callback function when tier is selected
  */
 const TierSelector = ({ tiers = [], selectedTier, onSelectTier }) => {
+  const { t } = useLang();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -51,7 +53,7 @@ const TierSelector = ({ tiers = [], selectedTier, onSelectTier }) => {
   };
 
   const formatPrice = (tier) => {
-    return formatTierPrice(tier, 'dropdown');
+    return formatTierPrice(tier, 'dropdown', t);
   };
 
   return (

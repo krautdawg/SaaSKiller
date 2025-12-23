@@ -45,6 +45,13 @@ const ToolCard = ({ tool }) => {
     window.open(tool.website, '_blank', 'noopener,noreferrer');
   };
 
+  const getCategoryLabel = (categoryValue) => {
+    if (!categoryValue) return '';
+    const key = `category.${categoryValue}`;
+    const translated = t(key);
+    return translated === key ? categoryValue : translated;
+  };
+
   return (
     <div
       onClick={handleClick}
@@ -86,7 +93,7 @@ const ToolCard = ({ tool }) => {
             {tool.category && (
               <span className="inline-block mt-1 text-sm font-medium text-brand-secondary bg-brand-secondary/10
                              px-2 py-1 rounded">
-                {tool.category}
+                {getCategoryLabel(tool.category)}
               </span>
             )}
           </div>
@@ -131,7 +138,7 @@ const ToolCard = ({ tool }) => {
             <>
               <DollarSign className="w-4 h-4 text-brand-secondary" />
               <span className="text-sm font-medium text-brand-text">
-                {t('browser.from')} {formatTierPrice(firstTier, 'card')}
+                {t('browser.from')} {formatTierPrice(firstTier, 'card', t)}
               </span>
             </>
           )}

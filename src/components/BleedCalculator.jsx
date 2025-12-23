@@ -66,7 +66,7 @@ const BleedCalculator = () => {
              >
                {selectedTool.subscription_tiers.map((tier, idx) => (
                  <option key={idx} value={tier.name}>
-                   {tier.name} - {formatTierPrice(tier, 'dropdown')}
+                   {tier.name} - {formatTierPrice(tier, 'dropdown', t)}
                  </option>
                ))}
              </select>
@@ -74,7 +74,7 @@ const BleedCalculator = () => {
            </div>
            {selectedTier && (
              <div className="text-right text-sm text-gray-600 mt-2 font-sans">
-               {formatTierPrice(selectedTier, 'calculator')}
+               {formatTierPrice(selectedTier, 'calculator', t)}
              </div>
            )}
          </div>

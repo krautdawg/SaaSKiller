@@ -325,6 +325,31 @@ const strings = {
     'filter.title': 'Filter by Category',
     'filter.clear': 'Clear filter',
     'filter.showing': (name) => `Showing tools in ${name}`,
+    'filter.allCategories': 'All categories',
+    'search.clear': 'Clear search',
+
+    // Categories
+    'category.communication': 'Communication',
+    'category.productivity': 'Productivity',
+    'category.development': 'Development',
+    'category.design': 'Design',
+    'category.marketing': 'Marketing',
+    'category.sales-crm': 'Sales & CRM',
+    'category.analytics': 'Analytics',
+    'category.project-management': 'Project Management',
+    'category.finance': 'Finance',
+    'category.hr-recruiting': 'HR & Recruiting',
+
+    // Tier pricing strings (tierPricing utility)
+    'tier.priceMissing': 'Price missing',
+    'tier.free': 'Free',
+    'tier.perMonthShort': '/mo',
+    'tier.perUser': 'per user',
+    'tier.enterpriseMessage.0': 'Too Much To Count',
+    'tier.enterpriseMessage.1': 'You need some serious help',
+    'tier.enterpriseMessage.2': 'If you have to ask...',
+    'tier.enterpriseMessage.3': 'More than your car payment',
+    'tier.enterpriseMessage.4': 'Call them. We dare you.',
     'pricing.or': 'Or',
   },
 
@@ -613,6 +638,31 @@ const strings = {
     'filter.title': 'Nach Kategorie filtern',
     'filter.clear': 'Filter löschen',
     'filter.showing': (name) => `Zeige Tools in ${name}`,
+    'filter.allCategories': 'Alle Kategorien',
+    'search.clear': 'Suche löschen',
+
+    // Kategorien
+    'category.communication': 'Kommunikation',
+    'category.productivity': 'Produktivität',
+    'category.development': 'Entwicklung',
+    'category.design': 'Design',
+    'category.marketing': 'Marketing',
+    'category.sales-crm': 'Vertrieb & CRM',
+    'category.analytics': 'Analytik',
+    'category.project-management': 'Projektmanagement',
+    'category.finance': 'Finanzen',
+    'category.hr-recruiting': 'HR & Recruiting',
+
+    // Tier-Pricing Strings (tierPricing Utility)
+    'tier.priceMissing': 'Preis fehlt',
+    'tier.free': 'Kostenlos',
+    'tier.perMonthShort': '/Monat',
+    'tier.perUser': 'pro Nutzer',
+    'tier.enterpriseMessage.0': 'Zu viel zum Zählen',
+    'tier.enterpriseMessage.1': 'Da brauchen Sie ernsthafte Hilfe',
+    'tier.enterpriseMessage.2': 'Wenn Sie fragen müssen...',
+    'tier.enterpriseMessage.3': 'Mehr als Ihre Autokreditrate',
+    'tier.enterpriseMessage.4': 'Rufen Sie dort an. Wir trauen uns.',
     'pricing.or': 'Oder',
   }
 };

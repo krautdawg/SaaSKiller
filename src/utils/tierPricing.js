@@ -5,14 +5,29 @@
  * Handles Enterprise/custom tier detection and cheeky SaaSKiller-brand messaging
  */
 
-// Cheeky messages for Enterprise/custom pricing tiers
-const ENTERPRISE_MESSAGES = [
-  "Too Much To Count",
-  "You need some serious help",
-  "If you have to ask...",
-  "More than your car payment",
-  "Call them. We dare you."
+const DEFAULT_ENTERPRISE_MESSAGES = [
+  'Too Much To Count',
+  'You need some serious help',
+  'If you have to ask...',
+  'More than your car payment',
+  'Call them. We dare you.'
 ];
+
+const defaultT = (key) => {
+  const fallbacks = {
+    'tier.priceMissing': 'Price missing',
+    'tier.free': 'Free',
+    'tier.perMonthShort': '/mo',
+    'tier.perUser': 'per user',
+    'tier.enterpriseMessage.0': DEFAULT_ENTERPRISE_MESSAGES[0],
+    'tier.enterpriseMessage.1': DEFAULT_ENTERPRISE_MESSAGES[1],
+    'tier.enterpriseMessage.2': DEFAULT_ENTERPRISE_MESSAGES[2],
+    'tier.enterpriseMessage.3': DEFAULT_ENTERPRISE_MESSAGES[3],
+    'tier.enterpriseMessage.4': DEFAULT_ENTERPRISE_MESSAGES[4],
+  };
+
+  return fallbacks[key] ?? key;
+};
 
 /**
  * Detect if a tier is an Enterprise/Custom pricing tier
@@ -52,7 +67,11 @@ export const isEnterpriseTier = (tier) => {
   const isFreePattern =
     tierName.includes('free') ||
     tierName.includes('starter') ||
-    tierName.includes('trial');
+    tierName.includes('trial') ||
+    // German
+    tierName.includes('kostenlos') ||
+    tierName.includes('gratis') ||
+    tierName.includes('probe');
 
   if (isFreePattern) {
     return false; // It's a Free tier, not Enterprise
@@ -66,7 +85,12 @@ export const isEnterpriseTier = (tier) => {
     'contact',
     'talk to sales',
     'ultimate',
-    'unlimited'
+    'unlimited',
+    // German
+    'kontakt',
+    'vertrieb',
+    'angebot',
+    'individuell'
   ];
 
   if (enterprisePatterns.some(pattern => tierName.includes(pattern))) {
@@ -80,7 +104,13 @@ export const isEnterpriseTier = (tier) => {
     'custom quote',
     'sales',
     'pricing varies',
-    'call us'
+    'call us',
+    // German
+    'kontakt',
+    'vertrieb',
+    'angebot',
+    'preise variieren',
+    'individuell'
   ];
 
   if (notesPatterns.some(pattern => notes.includes(pattern))) {
@@ -108,7 +138,7 @@ export const getEnterpriseMessage = (tier) => {
   );
 
   // Select message based on hash
-  return ENTERPRISE_MESSAGES[hash % ENTERPRISE_MESSAGES.length];
+  return DEFAULT_ENTERPRISE_MESSAGES[hash % DEFAULT_ENTERPRISE_MESSAGES.length];
 };
 
 /**
@@ -121,8 +151,10 @@ export const getEnterpriseMessage = (tier) => {
  * @param {string} context - Display context: 'dropdown' | 'card' | 'calculator' | 'default'
  * @returns {string} Formatted price string
  */
-export const formatTierPrice = (tier, context = 'default') => {
-  if (!tier) return 'Price missing';
+export const formatTierPrice = (tier, context = 'default', t) => {
+  const tFn = typeof t === 'function' ? t : defaultT;
+
+  if (!tier) return tFn('tier.priceMissing');
 
   // Get tier name for pattern checks
   const tierName = (tier.tier_name || tier.name || '').toLowerCase();
@@ -131,19 +163,29 @@ export const formatTierPrice = (tier, context = 'default') => {
   const isFreePattern =
     tierName.includes('free') ||
     tierName.includes('starter') ||
-    tierName.includes('trial');
+    tierName.includes('trial') ||
+    // German
+    tierName.includes('kostenlos') ||
+    tierName.includes('gratis') ||
+    tierName.includes('probe');
 
   const hasBothPricesZero =
     (tier.price_monthly === 0 || tier.price_monthly === null) &&
     (tier.price_yearly === 0 || tier.price_yearly === null);
 
   if (isFreePattern && hasBothPricesZero) {
-    return 'Free';
+    return tFn('tier.free');
   }
 
   // 2. Check if Enterprise tier (BEFORE checking for zero price)
   if (isEnterpriseTier(tier)) {
-    return getEnterpriseMessage(tier);
+    const tierNameForHash = tier.tier_name || tier.name || 'Enterprise';
+    const hash = tierNameForHash.split('').reduce(
+      (acc, char) => acc + char.charCodeAt(0),
+      0
+    );
+    const messageKey = `tier.enterpriseMessage.${hash % 5}`;
+    return tFn(messageKey);
   }
 
   // 3. Get monthly price from various sources
@@ -151,15 +193,15 @@ export const formatTierPrice = (tier, context = 'default') => {
 
   // 4. Handle missing/zero price for non-Enterprise tiers
   if (!monthlyPrice || monthlyPrice === 0) {
-    return 'Price missing';
+    return tFn('tier.priceMissing');
   }
 
   // 5. Format standard pricing
-  const priceText = `$${monthlyPrice}/mo`;
+  const priceText = `$${monthlyPrice}${tFn('tier.perMonthShort')}`;
 
   // Add "per user" suffix for per-seat pricing
   if (tier.price_model === 'per_seat') {
-    return `${priceText} per user`;
+    return `${priceText} ${tFn('tier.perUser')}`;
   }
 
   return priceText;

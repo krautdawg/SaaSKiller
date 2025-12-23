@@ -126,7 +126,7 @@ const CostCalculator = ({
               {selectedTier.tier_name}
             </div>
             <div className="text-xs text-gray-600 mt-1">
-              {formatTierPrice(selectedTier, 'calculator')}
+              {formatTierPrice(selectedTier, 'calculator', t)}
             </div>
             {selectedTier.price_model && (
               <div className="text-xs text-gray-500 mt-1 capitalize">

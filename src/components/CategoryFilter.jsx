@@ -40,6 +40,13 @@ const CategoryFilter = () => {
     clearFilters();
   };
 
+  const getCategoryLabel = (slug, fallback) => {
+    if (!slug) return fallback || '';
+    const key = `category.${slug}`;
+    const translated = t(key);
+    return translated === key ? (fallback || slug) : translated;
+  };
+
   if (isLoadingCategories) {
     return (
       <div className="flex items-center gap-2 mb-8">
@@ -81,7 +88,7 @@ const CategoryFilter = () => {
                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                      }`}
         >
-          {t('browser.all')} {t('audit.features')}
+          {t('filter.allCategories')}
         </button>
 
         {/* Category Pills */}
@@ -98,7 +105,7 @@ const CategoryFilter = () => {
                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                          }`}
             >
-              {category.name}
+              {getCategoryLabel(category.slug, category.name)}
             </button>
           );
         })}
@@ -108,7 +115,7 @@ const CategoryFilter = () => {
       {selectedCategory && (
         <div className="mt-4 px-4 py-2 bg-brand-secondary/10 rounded-lg border border-brand-secondary/20">
           <p className="text-sm text-brand-text leading-relaxed">
-            {t('filter.showing', categories.find(c => c.slug === selectedCategory)?.name)}
+            {t('filter.showing', getCategoryLabel(selectedCategory, categories.find(c => c.slug === selectedCategory)?.name))}
           </p>
         </div>
       )}
