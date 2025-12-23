@@ -160,6 +160,10 @@ const strings = {
     // Footer
     'footer.copyright': '© 2025 SaaSKiller. All rights reserved.',
     'footer.tagline': 'Built with ♥ and Vibe Coding.',
+    'footer.impressum': 'Impressum',
+    'footer.datenschutz': 'Datenschutz',
+    'legal.lastUpdated': 'Last Updated',
+    'legal.backToHome': 'Back to Home',
 
     // Tool Browser
     'browser.title': 'Browse SaaS Tools',
@@ -473,6 +477,10 @@ const strings = {
     // Footer
     'footer.copyright': '© 2025 SaaSKiller. Alle Rechte vorbehalten.',
     'footer.tagline': 'Entwickelt mit ♥ und Vibe Coding.',
+    'footer.impressum': 'Impressum',
+    'footer.datenschutz': 'Datenschutz',
+    'legal.lastUpdated': 'Zuletzt aktualisiert',
+    'legal.backToHome': 'Zurück zur Startseite',
 
     // Tool Browser
     'browser.title': 'SaaS-Tools durchsuchen',

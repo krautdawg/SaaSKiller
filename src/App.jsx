@@ -11,8 +11,13 @@ import ToolBrowser from './components/ToolBrowser';
 import ToolDetailView from './components/ToolDetailView';
 import PricingPage from './components/PricingPage';
 import LanguageToggle from './components/LanguageToggle';
+import LegalPage from './components/LegalPage';
 import { useLang, getLang } from './lang';
 import { api } from './services/api';
+import { impressumDE } from './content/legal/impressum.de.jsx';
+import { impressumEN } from './content/legal/impressum.en.jsx';
+import { datenschutzDE } from './content/legal/datenschutz.de.jsx';
+import { datenschutzEN } from './content/legal/datenschutz.en.jsx';
 
 /**
  * HomePage Component - Original audit flow
@@ -197,6 +202,21 @@ const HomePage = () => {
   );
 };
 
+/**
+ * Legal Pages Wrapper Components
+ */
+const ImpressumPage = () => {
+  const { lang } = useLang();
+  const content = lang === 'de' ? impressumDE : impressumEN;
+  return <LegalPage {...content} />;
+};
+
+const DatenschutzPage = () => {
+  const { lang } = useLang();
+  const content = lang === 'de' ? datenschutzDE : datenschutzEN;
+  return <LegalPage {...content} />;
+};
+
 const App = () => {
   const { t } = useLang();
   const { setStep } = useAuditStore();
@@ -313,13 +333,34 @@ const App = () => {
           <Route path="/browse" element={<ToolBrowser />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/tools/:id" element={<ToolDetailView />} />
+          <Route path="/impressum" element={<ImpressumPage />} />
+          <Route path="/datenschutz" element={<DatenschutzPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
         <footer className="py-12 text-center text-gray-700 text-sm border-t mt-20 font-sans">
-          <p>{t('footer.copyright')}</p>
-          <p className="mt-2">{t('footer.tagline')}</p>
-          <LanguageToggle />
+          <div className="container mx-auto max-w-5xl px-4">
+            {/* Legal Links - MUST be visible and prominent per TMG §5 */}
+            <div className="flex justify-center gap-6 mb-4 text-xs">
+              <Link
+                to="/impressum"
+                className="hover:text-brand-secondary transition-colors underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2 rounded px-1"
+              >
+                {t('footer.impressum')}
+              </Link>
+              <Link
+                to="/datenschutz"
+                className="hover:text-brand-secondary transition-colors underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2 rounded px-1"
+              >
+                {t('footer.datenschutz')}
+              </Link>
+            </div>
+
+            {/* Existing Content */}
+            <p>{t('footer.copyright')}</p>
+            <p className="mt-2">{t('footer.tagline')}</p>
+            <LanguageToggle />
+          </div>
         </footer>
       </div>
     </BrowserRouter>
