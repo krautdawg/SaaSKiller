@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- This sitemap is generated dynamically from the tools database.
+       Each tool in the database has a corresponding /tools/{id} page.
+       This is a template showing the expected structure.
+       In production, this should be generated server-side based on actual tools in the database.
+  -->
+
+  <!-- Example tool entries - replace with actual tool data -->
+  <url>
+    <loc>https://saaskiller.app/tools/1</loc>
+    <lastmod>2025-12-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- NOTE: Generate this file dynamically by:
+       1. Querying the tools database
+       2. Creating a URL entry for each tool: /tools/{toolId}
+       3. Setting lastmod to when the tool entry was last updated
+       4. Setting priority based on tool popularity/importance
+  -->
+</urlset>

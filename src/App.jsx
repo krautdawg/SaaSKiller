@@ -12,6 +12,8 @@ import ToolDetailView from './components/ToolDetailView';
 import PricingPage from './components/PricingPage';
 import LanguageToggle from './components/LanguageToggle';
 import LegalPage from './components/LegalPage';
+import Blog from './components/Blog';
+import BlogPost from './components/BlogPost';
 import { useLang, getLang } from './lang';
 import { api } from './services/api';
 import { impressumDE } from './content/legal/impressum.de.jsx';
@@ -251,6 +253,9 @@ const App = () => {
             <Link to="/browse" className="font-medium text-gray-600 hover:text-brand-secondary
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                        rounded transition-colors">{t('nav.browse')}</Link>
+            <Link to="/blog" className="font-medium text-gray-600 hover:text-brand-secondary
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                       rounded transition-colors">Blog</Link>
             <Link to="/pricing" className="font-medium text-gray-600 hover:text-brand-secondary
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                        rounded transition-colors">{t('nav.pricing')}</Link>
@@ -304,6 +309,15 @@ const App = () => {
                 {t('nav.browse')}
               </Link>
               <Link
+                to="/blog"
+                onClick={closeMobileMenu}
+                className="font-medium text-gray-600 hover:text-brand-secondary py-2 px-3 rounded
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
+                         transition-colors"
+              >
+                Blog
+              </Link>
+              <Link
                 to="/pricing"
                 onClick={closeMobileMenu}
                 className="font-medium text-gray-600 hover:text-brand-secondary py-2 px-3 rounded
@@ -333,6 +347,8 @@ const App = () => {
           <Route path="/browse" element={<ToolBrowser />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/tools/:id" element={<ToolDetailView />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/impressum" element={<ImpressumPage />} />
           <Route path="/datenschutz" element={<DatenschutzPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
