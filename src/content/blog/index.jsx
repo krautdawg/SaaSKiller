@@ -1,18 +1,27 @@
 // Blog posts index - dynamically imported content
 // This file serves as the central registry for all blog posts
 
+// Language wrapper for bilingual content
+import { BlogContent } from './BlogContent';
+
 // Tier 1: Pillar Pages
 import { SaaSBloatPillar } from './pillars/saas-bloat-pillar';
 import { CRMBloatPillar } from './pillars/crm-bloat-pillar';
 import { OverpricedSaasPillar } from './pillars/overpriced-saas-pillar';
 
-// Tier 2: Comparison Guides
+// Tier 2: Comparison Guides (English)
 import { NotionVsObsidianComparison } from './comparisons/notion-vs-obsidian';
 import { SlackVsDiscordComparison } from './comparisons/slack-vs-discord';
 import { HubSpotVsSalesforceComparison } from './comparisons/hubspot-vs-salesforce';
 import { MondayVsAsanaComparison } from './comparisons/monday-vs-asana';
 
-// Tier 3: Tool-Specific Critical Articles
+// Tier 2: Comparison Guides (German)
+import { NotionVsObsidianComparisonDE } from './comparisons/notion-vs-obsidian-de';
+import { SlackVsDiscordComparisonDE } from './comparisons/slack-vs-discord-de';
+import { HubSpotVsSalesforceComparisonDE } from './comparisons/hubspot-vs-salesforce-de';
+import { MondayVsAsanaComparisonDE } from './comparisons/monday-vs-asana-de';
+
+// Tier 3: Tool-Specific Critical Articles (English)
 import { SalesforceOverkillComparison } from './comparisons/salesforce-overkill';
 import { SlackRealCostComparison } from './comparisons/slack-real-cost';
 import { HubSpotPricingTrapComparison } from './comparisons/hubspot-pricing-trap';
@@ -23,6 +32,18 @@ import { GoogleWorkspaceFalseEconomyComparison } from './comparisons/google-work
 import { StripeHiddenCostsComparison } from './comparisons/stripe-hidden-costs';
 import { AWSCostShockComparison } from './comparisons/aws-cost-shock';
 import { AsanaComplexityBurdenComparison } from './comparisons/asana-complexity-burden';
+
+// Tier 3: Tool-Specific Critical Articles (German)
+import { SalesforceOverkillComparisonDE } from './comparisons/salesforce-overkill-de';
+import { SlackRealCostComparisonDE } from './comparisons/slack-real-cost-de';
+import { HubSpotPricingTrapComparisonDE } from './comparisons/hubspot-pricing-trap-de';
+import { MondayAestheticPremiumComparisonDE } from './comparisons/monday-aesthetic-premium-de';
+import { NotionProductivityTheaterComparisonDE } from './comparisons/notion-productivity-theater-de';
+import { ZapierTaxComparisonDE } from './comparisons/zapier-tax-de';
+import { GoogleWorkspaceFalseEconomyComparisonDE } from './comparisons/google-workspace-false-economy-de';
+import { StripeHiddenCostsComparisonDE } from './comparisons/stripe-hidden-costs-de';
+import { AWSCostShockComparisonDE } from './comparisons/aws-cost-shock-de';
+import { AsanaComplexityBurdenComparisonDE } from './comparisons/asana-complexity-burden-de';
 
 export const blogPosts = [
   // Tier 1: Pillar Pages
@@ -83,7 +104,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Notion vs Obsidian', 'Note Taking', 'Vendor Lock-in', 'Knowledge Management'],
-    content: <NotionVsObsidianComparison />,
+    content: <BlogContent englishComponent={<NotionVsObsidianComparison />} germanComponent={<NotionVsObsidianComparisonDE />} />,
     relatedSlugs: ['saas-bloat-what-it-costs-your-business', 'notion-productivity-theater', 'slack-vs-discord'],
     seoKeywords: ['notion vs obsidian', 'notion alternative', 'obsidian vs notion', 'vendor lock-in'],
     metaDescription: 'Compare Notion vs Obsidian. Learn about vendor lock-in, ownership, and which tool actually fits small businesses.'
@@ -98,7 +119,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Slack vs Discord', 'Communication Tools', 'Cost Comparison', 'Team Chat'],
-    content: <SlackVsDiscordComparison />,
+    content: <BlogContent englishComponent={<SlackVsDiscordComparison />} germanComponent={<SlackVsDiscordComparisonDE />} />,
     relatedSlugs: ['saas-bloat-what-it-costs-your-business', 'slack-real-cost', 'notion-vs-obsidian'],
     seoKeywords: ['slack vs discord', 'slack alternative', 'discord for business', 'slack pricing'],
     metaDescription: 'Slack costs $1,500/year for 10 people. Discord is free and does nearly the same thing. See the honest comparison.'
@@ -113,7 +134,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['HubSpot vs Salesforce', 'CRM', 'Sales Tools', 'Cost Analysis'],
-    content: <HubSpotVsSalesforceComparison />,
+    content: <BlogContent englishComponent={<HubSpotVsSalesforceComparison />} germanComponent={<HubSpotVsSalesforceComparisonDE />} />,
     relatedSlugs: ['crm-bloat-how-it-happened-and-how-to-fix-it', 'salesforce-overkill', 'hubspot-pricing-trap'],
     seoKeywords: ['hubspot vs salesforce', 'salesforce alternative', 'hubspot pricing', 'crm comparison'],
     metaDescription: 'HubSpot costs 27% less than Salesforce and takes 80% less time to implement for small teams. See the real 3-year cost of ownership.'
@@ -128,7 +149,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Monday vs Asana', 'Project Management', 'Team Tools', 'Productivity'],
-    content: <MondayVsAsanaComparison />,
+    content: <BlogContent englishComponent={<MondayVsAsanaComparison />} germanComponent={<MondayVsAsanaComparisonDE />} />,
     relatedSlugs: ['saas-bloat-what-it-costs-your-business', 'asana-complexity-burden', 'monday-aesthetic-premium'],
     seoKeywords: ['monday vs asana', 'asana alternative', 'monday.com pricing', 'project management tools'],
     metaDescription: 'Asana is 4-5x cheaper than Monday for a 10-person team. See the honest comparison of features, cost, and complexity.'
@@ -145,7 +166,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Salesforce', 'CRM', 'Cost Analysis', 'Enterprise Software'],
-    content: <SalesforceOverkillComparison />,
+    content: <BlogContent englishComponent={<SalesforceOverkillComparison />} germanComponent={<SalesforceOverkillComparisonDE />} />,
     relatedSlugs: ['hubspot-vs-salesforce', 'crm-bloat-how-it-happened-and-how-to-fix-it', 'hubspot-pricing-trap'],
     seoKeywords: ['salesforce overkill', 'salesforce too expensive', 'salesforce alternatives', 'is salesforce worth it'],
     metaDescription: 'Salesforce costs $100,000+ annually for small teams, not the advertised price. See alternatives and when you actually need Salesforce.'
@@ -160,7 +181,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Slack', 'Productivity', 'Hidden Costs', 'Team Communication'],
-    content: <SlackRealCostComparison />,
+    content: <BlogContent englishComponent={<SlackRealCostComparison />} germanComponent={<SlackRealCostComparisonDE />} />,
     relatedSlugs: ['slack-vs-discord', 'why-overpriced-saas-tools-destroy-small-business-margins', 'zapier-tax'],
     seoKeywords: ['slack cost', 'slack expensive', 'slack hidden costs', 'is slack worth it'],
     metaDescription: 'Slack\'s real cost is 4.5–5x the subscription price once you count lost productivity. See why Discord is a better choice.'
@@ -175,7 +196,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['HubSpot', 'Pricing', 'CRM', 'Cost Explosion'],
-    content: <HubSpotPricingTrapComparison />,
+    content: <BlogContent englishComponent={<HubSpotPricingTrapComparison />} germanComponent={<HubSpotPricingTrapComparisonDE />} />,
     relatedSlugs: ['hubspot-vs-salesforce', 'why-overpriced-saas-tools-destroy-small-business-margins', 'crm-bloat-how-it-happened-and-how-to-fix-it'],
     seoKeywords: ['hubspot pricing', 'hubspot expensive', 'hubspot cost', 'hubspot pricing trap'],
     metaDescription: 'HubSpot\'s pricing creeps from $600/month to $3,500/month over 3 years. See the real cost breakdown and alternatives.'
@@ -190,7 +211,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Monday.com', 'Project Management', 'UI Design', 'Cost Analysis'],
-    content: <MondayAestheticPremiumComparison />,
+    content: <BlogContent englishComponent={<MondayAestheticPremiumComparison />} germanComponent={<MondayAestheticPremiumComparisonDE />} />,
     relatedSlugs: ['monday-vs-asana', 'saas-bloat-what-it-costs-your-business', 'asana-complexity-burden'],
     seoKeywords: ['monday.com price', 'monday expensive', 'monday.com vs asana', 'project management cost'],
     metaDescription: 'Monday costs 5x more than Asana for visual beauty, not better features. See the honest pricing breakdown and alternatives.'
@@ -205,7 +226,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Notion', 'Productivity', 'Team Tools', 'Knowledge Management'],
-    content: <NotionProductivityTheaterComparison />,
+    content: <BlogContent englishComponent={<NotionProductivityTheaterComparison />} germanComponent={<NotionProductivityTheaterComparisonDE />} />,
     relatedSlugs: ['notion-vs-obsidian', 'saas-bloat-what-it-costs-your-business', 'asana-complexity-burden'],
     seoKeywords: ['notion productivity', 'notion abandoned', 'notion not working', 'notion alternatives'],
     metaDescription: 'Notion feels productive but teams abandon it because it requires constant maintenance. See why and what tools actually work.'
@@ -220,7 +241,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Zapier', 'Integrations', 'Hidden Costs', 'SaaS Tools'],
-    content: <ZapierTaxComparison />,
+    content: <BlogContent englishComponent={<ZapierTaxComparison />} germanComponent={<ZapierTaxComparisonDE />} />,
     relatedSlugs: ['why-overpriced-saas-tools-destroy-small-business-margins', 'slack-real-cost', 'saas-bloat-what-it-costs-your-business'],
     seoKeywords: ['zapier cost', 'zapier expensive', 'zapier alternatives', 'integration costs'],
     metaDescription: 'Zapier\'s real cost is $5,000–$10,000/year for most teams. See why and what alternatives actually save money.'
@@ -235,7 +256,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Google Workspace', 'Email', 'Admin Overhead', 'Business Tools'],
-    content: <GoogleWorkspaceFalseEconomyComparison />,
+    content: <BlogContent englishComponent={<GoogleWorkspaceFalseEconomyComparison />} germanComponent={<GoogleWorkspaceFalseEconomyComparisonDE />} />,
     relatedSlugs: ['why-overpriced-saas-tools-destroy-small-business-margins', 'saas-bloat-what-it-costs-your-business', 'zapier-tax'],
     seoKeywords: ['google workspace cost', 'google workspace price', 'google workspace alternatives', 'is google workspace worth it'],
     metaDescription: 'Google Workspace\'s real cost is 3-4x the subscription price once you count admin time and maintenance. See true total cost of ownership.'
@@ -250,7 +271,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Stripe', 'Payment Processing', 'Hidden Costs', 'E-commerce'],
-    content: <StripeHiddenCostsComparison />,
+    content: <BlogContent englishComponent={<StripeHiddenCostsComparison />} germanComponent={<StripeHiddenCostsComparisonDE />} />,
     relatedSlugs: ['why-overpriced-saas-tools-destroy-small-business-margins', 'zapier-tax', 'aws-cost-shock'],
     seoKeywords: ['stripe cost', 'stripe pricing', 'stripe fees', 'stripe alternatives'],
     metaDescription: 'Stripe\'s real cost is 4.5-5.9% per transaction, not 2.9%. See all hidden fees and payment processing alternatives.'
@@ -265,7 +286,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['AWS', 'Cloud Computing', 'Cost Explosion', 'Infrastructure'],
-    content: <AWSCostShockComparison />,
+    content: <BlogContent englishComponent={<AWSCostShockComparison />} germanComponent={<AWSCostShockComparisonDE />} />,
     relatedSlugs: ['saas-bloat-what-it-costs-your-business', 'why-overpriced-saas-tools-destroy-small-business-margins', 'zapier-tax'],
     seoKeywords: ['aws cost', 'aws expensive', 'aws cost explosion', 'aws alternatives'],
     metaDescription: 'AWS costs spiral from $100 to $10,000/month without anyone intending it. See why and what cheaper alternatives exist.'
@@ -280,7 +301,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['Asana', 'Project Management', 'Overhead Costs', 'Team Tools'],
-    content: <AsanaComplexityBurdenComparison />,
+    content: <BlogContent englishComponent={<AsanaComplexityBurdenComparison />} germanComponent={<AsanaComplexityBurdenComparisonDE />} />,
     relatedSlugs: ['monday-vs-asana', 'saas-bloat-what-it-costs-your-business', 'monday-aesthetic-premium'],
     seoKeywords: ['asana cost', 'asana complexity', 'asana maintenance', 'asana alternatives'],
     metaDescription: 'Asana\'s real cost is 4x the subscription when you count setup and maintenance hours. See simpler, cheaper alternatives.'
