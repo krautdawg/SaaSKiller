@@ -15,13 +15,18 @@ const Blog = () => {
 
   const categories = ['all', ...new Set(blogPosts.map(p => p.category))];
 
+  const getLocalizedField = (post, fieldName) => {
+    const germanFieldName = fieldName + 'DE';
+    return lang === 'de' && post[germanFieldName] ? post[germanFieldName] : post[fieldName];
+  };
+
   const getCategoryLabel = (cat) => {
     const labels = {
-      'saas-bloat': 'SaaS Bloat',
-      'cost-reduction': 'Cost Reduction',
-      'tool-comparison': 'Tool Comparison',
-      'business-tips': 'Business Tips',
-      'all': t('blog.allPosts') || 'All Posts'
+      'saas-bloat': lang === 'de' ? 'SaaS Bloat' : 'SaaS Bloat',
+      'cost-reduction': lang === 'de' ? 'Kostenreduktion' : 'Cost Reduction',
+      'tool-comparison': lang === 'de' ? 'Tool Vergleich' : 'Tool Comparison',
+      'business-tips': lang === 'de' ? 'Business Tipps' : 'Business Tips',
+      'all': t('blog.allPosts') || (lang === 'de' ? 'Alle Beiträge' : 'All Posts')
     };
     return labels[cat] || cat;
   };
@@ -78,14 +83,14 @@ const Blog = () => {
                   </div>
                   <Link to={`/blog/${post.slug}`}>
                     <h2 className="text-2xl font-bold mb-2 font-heading hover:text-brand-secondary transition-colors">
-                      {post.title}
+                      {getLocalizedField(post, 'title')}
                     </h2>
                   </Link>
                   <p className="text-gray-600 mb-4 font-sans">
-                    {post.excerpt}
+                    {getLocalizedField(post, 'excerpt')}
                   </p>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {post.tags && post.tags.map(tag => (
+                    {(lang === 'de' && post.tagsDE ? post.tagsDE : post.tags) && (lang === 'de' && post.tagsDE ? post.tagsDE : post.tags).map(tag => (
                       <span key={tag} className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-sans">
                         {tag}
                       </span>
@@ -96,12 +101,12 @@ const Blog = () => {
                     className="inline-block text-brand-secondary font-bold hover:underline transition-colors
                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2 rounded px-1"
                   >
-                    Read Article →
+                    {lang === 'de' ? 'Artikel lesen →' : 'Read Article →'}
                   </Link>
                 </div>
                 {post.readingTime && (
                   <div className="text-sm text-gray-500 font-sans whitespace-nowrap">
-                    {post.readingTime} min read
+                    {post.readingTime} min {lang === 'de' ? 'Lesezeit' : 'read'}
                   </div>
                 )}
               </div>
@@ -110,7 +115,7 @@ const Blog = () => {
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-500 font-sans">
-              No articles found in this category. Check back soon!
+              {lang === 'de' ? 'Keine Artikel in dieser Kategorie gefunden. Schaue bald vorbei!' : 'No articles found in this category. Check back soon!'}
             </p>
           </div>
         )}

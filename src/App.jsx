@@ -253,9 +253,6 @@ const App = () => {
             <Link to="/browse" className="font-medium text-gray-600 hover:text-brand-secondary
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                        rounded transition-colors">{t('nav.browse')}</Link>
-            <Link to="/blog" className="font-medium text-gray-600 hover:text-brand-secondary
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
-                       rounded transition-colors">Blog</Link>
             <Link to="/pricing" className="font-medium text-gray-600 hover:text-brand-secondary
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
                        rounded transition-colors">{t('nav.pricing')}</Link>
@@ -309,15 +306,6 @@ const App = () => {
                 {t('nav.browse')}
               </Link>
               <Link
-                to="/blog"
-                onClick={closeMobileMenu}
-                className="font-medium text-gray-600 hover:text-brand-secondary py-2 px-3 rounded
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2
-                         transition-colors"
-              >
-                Blog
-              </Link>
-              <Link
                 to="/pricing"
                 onClick={closeMobileMenu}
                 className="font-medium text-gray-600 hover:text-brand-secondary py-2 px-3 rounded
@@ -369,6 +357,12 @@ const App = () => {
                 className="hover:text-brand-secondary transition-colors underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2 rounded px-1"
               >
                 {t('footer.datenschutz')}
+              </Link>
+              <Link
+                to="/blog"
+                className="hover:text-brand-secondary transition-colors underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2 rounded px-1"
+              >
+                Blog
               </Link>
             </div>
 
