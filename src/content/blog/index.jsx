@@ -4,10 +4,15 @@
 // Language wrapper for bilingual content
 import { BlogContent } from './BlogContent';
 
-// Tier 1: Pillar Pages
+// Tier 1: Pillar Pages (English)
 import { SaaSBloatPillar } from './pillars/saas-bloat-pillar';
 import { CRMBloatPillar } from './pillars/crm-bloat-pillar';
 import { OverpricedSaasPillar } from './pillars/overpriced-saas-pillar';
+
+// Tier 1: Pillar Pages (German)
+import { SaaSBloatPillarDE } from './pillars/saas-bloat-pillar-de';
+import { CRMBloatPillarDE } from './pillars/crm-bloat-pillar-de';
+import { OverpricedSaasPillarDE } from './pillars/overpriced-saas-pillar-de';
 
 // Tier 2: Comparison Guides (English)
 import { NotionVsObsidianComparison } from './comparisons/notion-vs-obsidian';
@@ -57,7 +62,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['SaaS Bloat', 'Cost Reduction', 'Small Business', 'Software Audit'],
-    content: <SaaSBloatPillar />,
+    content: <BlogContent englishComponent={<SaaSBloatPillar />} germanComponent={<SaaSBloatPillarDE />} />,
     relatedSlugs: ['crm-bloat-how-it-happened-and-how-to-fix-it', 'why-overpriced-saas-tools-destroy-small-business-margins', 'slack-vs-discord', 'notion-vs-obsidian'],
     seoKeywords: ['SaaS bloat', 'SaaS tool bloat', 'software bloat', 'redundant SaaS', 'SaaS spending'],
     metaDescription: 'Discover how SaaS bloat costs your business thousands monthly. Learn what causes it and get a proven system to eliminate unnecessary tools.'
@@ -72,7 +77,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['CRM', 'CRM Bloat', 'Salesforce Alternative', 'Cost Reduction'],
-    content: <CRMBloatPillar />,
+    content: <BlogContent englishComponent={<CRMBloatPillar />} germanComponent={<CRMBloatPillarDE />} />,
     relatedSlugs: ['saas-bloat-what-it-costs-your-business', 'why-overpriced-saas-tools-destroy-small-business-margins', 'hubspot-vs-salesforce', 'salesforce-overkill'],
     seoKeywords: ['CRM bloat', 'Salesforce bloat', 'overly complex CRM', 'CRM too expensive'],
     metaDescription: 'Why does CRM bloat happen? Learn how it develops and get a practical guide to simplify your CRM without losing critical data.'
@@ -87,7 +92,7 @@ export const blogPosts = [
     author: 'Tim Neunzig',
     authorRole: 'Founder, SaaSKiller',
     tags: ['SaaS Pricing', 'Cost Reduction', 'Small Business', 'Budget'],
-    content: <OverpricedSaasPillar />,
+    content: <BlogContent englishComponent={<OverpricedSaasPillar />} germanComponent={<OverpricedSaasPillarDE />} />,
     relatedSlugs: ['saas-bloat-what-it-costs-your-business', 'crm-bloat-how-it-happened-and-how-to-fix-it', 'slack-real-cost', 'hubspot-pricing-trap'],
     seoKeywords: ['overpriced SaaS', 'SaaS too expensive', 'reduce SaaS costs', 'SaaS budgeting'],
     metaDescription: 'SaaS tools are expensive. See the real cost of overpriced software and learn a proven formula to cut your SaaS spending by 30-50%.'
