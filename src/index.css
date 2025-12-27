@@ -1,3 +1,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom Blog Content Styles */
+@layer components {
+  /* Callout box styling */
+  .prose .callout-box {
+    @apply p-6 bg-blue-50 border-l-4 border-blue-600 rounded-md my-8;
+  }
+
+  .prose .callout-box > p:first-child {
+    @apply font-bold text-lg mb-4 mt-0;
+  }
+
+  .prose .callout-box > p {
+    @apply mb-4 last:mb-0;
+  }
+
+  /* CTA button within callouts */
+  .prose .callout-box a.cta-button {
+    @apply inline-block bg-brand-accent text-white px-6 py-3 rounded-lg
+           font-bold no-underline hover:bg-red-600 transition-colors mb-3;
+  }
+
+  /* Ensure proper spacing for nested lists */
+  .prose ul ul,
+  .prose ol ul,
+  .prose ul ol,
+  .prose ol ol {
+    @apply mt-3 mb-3;
+  }
+}

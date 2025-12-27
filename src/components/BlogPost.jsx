@@ -56,13 +56,25 @@ const BlogPost = () => {
       </Link>
 
       {/* Article Header */}
-      <article className="prose prose-lg max-w-none">
+      <article
+        className="prose prose-lg prose-gray max-w-none"
+        role="article"
+        itemScope
+        itemType="https://schema.org/BlogPosting"
+      >
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-sm font-semibold text-brand-secondary uppercase tracking-wider">
+            <span
+              className="text-sm font-semibold text-brand-secondary uppercase tracking-wider"
+              itemProp="articleSection"
+            >
               {getLocalizedField('category')}
             </span>
-            <time className="text-sm text-gray-500 font-sans">
+            <time
+              className="text-sm text-gray-500 font-sans"
+              dateTime={post.date}
+              itemProp="datePublished"
+            >
               {new Date(post.date).toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -76,21 +88,36 @@ const BlogPost = () => {
             )}
           </div>
 
-          <h1 className="text-4xl font-bold mb-4 font-heading">{getLocalizedField('title')}</h1>
-          <p className="text-xl text-gray-600 mb-6 font-sans">{getLocalizedField('excerpt')}</p>
+          <h1
+            className="text-4xl font-bold mb-4 font-heading"
+            itemProp="headline"
+          >
+            {getLocalizedField('title')}
+          </h1>
+          <p
+            className="text-xl text-gray-600 mb-6 font-sans"
+            itemProp="description"
+          >
+            {getLocalizedField('excerpt')}
+          </p>
 
           {post.author && (
-            <div className="flex items-center gap-4 py-6 border-t border-b border-gray-200">
+            <div
+              className="flex items-center gap-4 py-6 border-t border-b border-gray-200"
+              itemProp="author"
+              itemScope
+              itemType="https://schema.org/Person"
+            >
               <div>
-                <p className="font-bold font-sans">{post.author}</p>
-                {post.authorRole && <p className="text-sm text-gray-600 font-sans">{getLocalizedField('authorRole')}</p>}
+                <p className="font-bold font-sans" itemProp="name">{post.author}</p>
+                {post.authorRole && <p className="text-sm text-gray-600 font-sans" itemProp="jobTitle">{getLocalizedField('authorRole')}</p>}
               </div>
             </div>
           )}
         </div>
 
         {/* Article Content */}
-        <div className="my-8 text-gray-700 font-sans leading-relaxed">
+        <div itemProp="articleBody">
           {post.content}
         </div>
 
