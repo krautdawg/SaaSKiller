@@ -157,6 +157,11 @@ const strings = {
     // CTA
     'cta.kill': 'Kill that SaaS!',
 
+    // Blog
+    'blog.title': 'Kill Your SaaS Bloat.',
+    'blog.subtitle': 'Expert strategies to eliminate redundant tools, stop wasting money, and reclaim your productivity.',
+    'blog.allPosts': 'All Posts',
+
     // Footer
     'footer.copyright': '© 2025 SaaSKiller. All rights reserved.',
     'footer.tagline': 'Built with ♥ and Vibe Coding.',
@@ -473,6 +478,11 @@ const strings = {
 
     // CTA
     'cta.kill': 'Jetzt SaaS killen!',
+
+    // Blog
+    'blog.title': 'Töte deinen SaaS Bloat.',
+    'blog.subtitle': 'Expertentipps zum Eliminieren redundanter Tools, zum Stoppen der Geldverschwendung und zur Rückgewinnung deiner Produktivität.',
+    'blog.allPosts': 'Alle Beiträge',
 
     // Footer
     'footer.copyright': '© 2025 SaaSKiller. Alle Rechte vorbehalten.',
