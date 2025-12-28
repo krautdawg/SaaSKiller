@@ -211,15 +211,6 @@ router.post('/', auditReportLimiter, async (req, res) => {
   } catch (error) {
     console.error('❌ Audit submission failed:', error);
 
-    // Check for duplicate submission error
-    if (error.code === '23505') {
-      // PostgreSQL unique violation
-      return res.status(409).json({
-        error: 'Duplicate submission',
-        message: 'You recently submitted an audit for this tool. Please wait before submitting again.'
-      });
-    }
-
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to queue audit report. Please try again later.'
