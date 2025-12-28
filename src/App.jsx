@@ -112,7 +112,7 @@ const HomePage = () => {
                    const customFeaturesFormatted = customFeatures.map(f => ({
                      name: f.name,
                      complexity: f.complexity,
-                     estimatedHours: f.estimatedHours
+                     estimatedHours: f.estimated_hours
                    }));
 
                    const auditData = {
