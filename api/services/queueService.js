@@ -45,6 +45,14 @@ emailQueue.on('error', (error) => {
   console.error('❌ Queue error:', error.message);
 });
 
+emailQueue.on('connect', () => {
+  console.log('✅ Bull Queue connected to Redis');
+});
+
+emailQueue.on('close', () => {
+  console.warn('⚠️ Bull Queue connection closed');
+});
+
 emailQueue.on('waiting', (jobId) => {
   console.log(`⏳ Job ${jobId} is waiting`);
 });

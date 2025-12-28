@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { pool } from './db.js';
 import { callPerplexityAPI, analyzeCustomFeature } from './perplexity.js';
 import auditReportsRouter from './routes/auditReports.js';
+import './workers/emailWorker.js'; // Start email queue worker
 
 dotenv.config();
 
