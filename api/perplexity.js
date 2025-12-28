@@ -318,6 +318,12 @@ Rules:
 
   } catch (error) {
     console.error('[Perplexity] ❌ Error analyzing custom feature:', error.message);
+    console.error('[Perplexity] Full error:', {
+      message: error.message,
+      name: error.name,
+      status: error.status,
+      code: error.code
+    });
     throw error;
   }
 }
