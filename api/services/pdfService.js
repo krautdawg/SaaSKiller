@@ -249,7 +249,7 @@ export async function generateAuditPDF(auditData) {
           doc
             .fontSize(10)
             .fillColor('#6B7280')
-            .text(`• ${feature.name} (${feature.estimatedHours}h)`, { indent: 10 });
+            .text(`• ${feature.name}`, { indent: 10 });
         });
 
         doc.moveDown(1.5);
