@@ -5,7 +5,8 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
+    "migrate": "node runMigrations.js",
+    "start": "node runMigrations.js && node server.js",
     "worker": "node workers/emailWorker.js",
     "dev": "node --watch server.js",
     "dev:worker": "node --watch workers/emailWorker.js",
