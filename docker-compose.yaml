@@ -76,7 +76,7 @@ services:
 
   # Umami Analytics Service
   umami:
-    image: ghcr.io/umami-software/umami:v3.0.3
+    image: ghcr.io/umami-software/umami:3.0.3
     container_name: umami-analytics
     restart: unless-stopped
     depends_on:
