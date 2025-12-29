@@ -55,6 +55,57 @@ services:
       - saaskiller-network
       - coolify
 
+  # Umami Analytics Database
+  umami-db:
+    image: postgres:16-alpine
+    container_name: umami-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${UMAMI_DB_PASSWORD:?UMAMI_DB_PASSWORD is required}
+    volumes:
+      - umami-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami -d umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - saaskiller-network
+
+  # Umami Analytics Service
+  umami:
+    image: ghcr.io/umami-software/umami:v3.0.3
+    container_name: umami-analytics
+    restart: unless-stopped
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD}@umami-db:5432/umami
+      DATABASE_TYPE: postgresql
+      HASH_SALT: ${UMAMI_HASH_SALT:?UMAMI_HASH_SALT is required}
+    expose:
+      - "3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.umami.rule=Host(`analytics.saas-killer.com`) || Host(`analytics.saas-killer.de`)"
+      - "traefik.http.routers.umami.entrypoints=https"
+      - "traefik.http.routers.umami.tls=true"
+      - "traefik.http.routers.umami.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.umami.tls.domains[0].main=analytics.saas-killer.com"
+      - "traefik.http.routers.umami.tls.domains[0].sans=analytics.saas-killer.de"
+      - "traefik.http.services.umami.loadbalancer.server.port=3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - saaskiller-network
+
   # Frontend (Vite + React served by Nginx)
   frontend:
     build:
@@ -86,6 +137,8 @@ services:
 
 volumes:
   pgdata:
+    driver: local
+  umami-pgdata:
     driver: local
 
 networks:
