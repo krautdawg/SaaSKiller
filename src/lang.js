@@ -15,9 +15,13 @@ function getInitialLang() {
     return langParam;
   }
 
-  // 2. Hostname Detection (.de domain) - Zero-config localization
-  if (window.location.hostname.endsWith('.de')) {
-    return 'de';
+  // 2. Hostname Detection (.de domain) - Zero-config localization (auto German)
+  if (window.location.hostname.includes('.de') || window.location.hostname === 'localhost') {
+    // For .de domain OR localhost, check if hostname suggests German
+    if (window.location.hostname.includes('.de')) {
+      localStorage.setItem(STORAGE_KEY, 'de');
+      return 'de';
+    }
   }
 
   // 3. Stored Preference
