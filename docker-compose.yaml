@@ -49,6 +49,7 @@ services:
       start_period: 40s
     networks:
       - saaskiller-network
+      - coolify
 
   # Frontend (Vite + React served by Nginx)
   frontend:
@@ -83,3 +84,5 @@ volumes:
 networks:
   saaskiller-network:
     driver: bridge
+  coolify:
+    external: true
