@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import useAuditStore from './store/auditStore';
@@ -42,7 +42,24 @@ const HomePage = () => {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(() => {
+    // Restore submission state from localStorage
+    const saved = localStorage.getItem('auditSubmissionSuccess');
+    return saved === 'true';
+  });
+
+  // Persist submission success state to localStorage
+  useEffect(() => {
+    localStorage.setItem('auditSubmissionSuccess', submitSuccess);
+  }, [submitSuccess]);
+
+  // Clear submission state when starting a new audit
+  useEffect(() => {
+    if (currentStep === 'search') {
+      setSubmitSuccess(false);
+      localStorage.removeItem('auditSubmissionSuccess');
+    }
+  }, [currentStep]);
 
   return (
     <main id="main-content" className="container mx-auto px-4 py-12 max-w-5xl">
