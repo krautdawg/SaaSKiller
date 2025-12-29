@@ -341,6 +341,11 @@ const ToolSearch = () => {
     <>
       {!loading ? (
         <div className="text-center py-20 animate-fade-in">
+          <div className="mb-8 flex justify-center">
+            <a href="https://www.producthunt.com/products/saaskiller?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-saaskiller" target="_blank" rel="noopener noreferrer">
+              <img alt="SaaSKiller - Stop Renting. Start Owning. | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1055721&theme=light&t=1767010084583" />
+            </a>
+          </div>
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight font-heading">
             {t('hero.title.line1')}<br/>
             <span className="text-brand-accent">{t('hero.title.line2')}</span>
