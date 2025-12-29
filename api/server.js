@@ -27,7 +27,7 @@ const generalLimiter = rateLimit({
 
 const aiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Only 5 AI analysis requests per 15min
+  max: 20, // Allow 20 AI analysis requests per 15min (1 per 45 seconds average) - increased for PH launch traffic
   message: { error: 'Too many analysis requests, please try again in 15 minutes' },
   standardHeaders: true,
   legacyHeaders: false
