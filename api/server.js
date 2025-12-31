@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { pool } from './db.js';
 import { callPerplexityAPI, analyzeCustomFeature } from './perplexity.js';
+import { translateStringsToGerman, sleep } from './services/translationService.js';
 import auditReportsRouter from './routes/auditReports.js';
 import './workers/emailWorker.js'; // Start email queue worker
 
@@ -588,6 +589,119 @@ app.get('/api/tools/search', aiLimiter, async (req, res) => {
       }
 
       await client.query('COMMIT');
+
+      // Auto-translate to German immediately after creation
+      console.log(`[API] 🇩🇪 Auto-translating ${toolData.name} to German...`);
+      try {
+        // Translate descriptions
+        if (toolData.short_description && toolData.short_description.trim()) {
+          await sleep(800);
+          const [shortDescriptionDe] = await translateStringsToGerman(
+            [toolData.short_description],
+            `${toolData.name} (short_description)`
+          );
+
+          await pool.query(
+            'UPDATE tools SET short_description_de = $1, description_de = $2 WHERE id = $3',
+            [shortDescriptionDe, shortDescriptionDe, toolId]
+          );
+        }
+
+        // Translate core features
+        if (toolData.core_features && toolData.core_features.length > 0) {
+          await sleep(800);
+          const coreNames = toolData.core_features.map(f => f.name);
+          const translatedCoreNames = await translateStringsToGerman(
+            coreNames,
+            `${toolData.name} (core feature names)`
+          );
+
+          await sleep(800);
+          const coreDescriptions = toolData.core_features.map(f => f.description);
+          const translatedCoreDescriptions = await translateStringsToGerman(
+            coreDescriptions,
+            `${toolData.name} (core feature descriptions)`
+          );
+
+          const coreFeaturesDe = toolData.core_features.map((f, idx) => ({
+            ...f,
+            name: translatedCoreNames[idx] || f.name,
+            description: translatedCoreDescriptions[idx] || f.description
+          }));
+
+          await pool.query(
+            'UPDATE tools SET core_features_de = $1 WHERE id = $2',
+            [JSON.stringify(coreFeaturesDe), toolId]
+          );
+        }
+
+        // Translate bloaty features
+        if (toolData.bloaty_features && toolData.bloaty_features.length > 0) {
+          await sleep(800);
+          const bloatyNames = toolData.bloaty_features.map(f => f.name);
+          const translatedBloatyNames = await translateStringsToGerman(
+            bloatyNames,
+            `${toolData.name} (bloaty feature names)`
+          );
+
+          await sleep(800);
+          const bloatyDescriptions = toolData.bloaty_features.map(f => f.description);
+          const translatedBloatyDescriptions = await translateStringsToGerman(
+            bloatyDescriptions,
+            `${toolData.name} (bloaty feature descriptions)`
+          );
+
+          const bloatyFeaturesDe = toolData.bloaty_features.map((f, idx) => ({
+            ...f,
+            name: translatedBloatyNames[idx] || f.name,
+            description: translatedBloatyDescriptions[idx] || f.description
+          }));
+
+          await pool.query(
+            'UPDATE tools SET bloaty_features_de = $1 WHERE id = $2',
+            [JSON.stringify(bloatyFeaturesDe), toolId]
+          );
+        }
+
+        // Translate subscription tier names and notes
+        const { rows: tiers } = await pool.query(
+          'SELECT id, tier_name, notes FROM subscription_tiers WHERE tool_id = $1 ORDER BY tier_order ASC',
+          [toolId]
+        );
+
+        if (tiers.length > 0) {
+          await sleep(800);
+          const tierNames = tiers.map(t => t.tier_name);
+          const translatedTierNames = await translateStringsToGerman(
+            tierNames,
+            `${toolData.name} (tier names)`
+          );
+
+          const tierNotes = tiers.map(t => t.notes || '');
+          const hasNotes = tierNotes.some(n => n.trim());
+
+          let translatedTierNotes = tierNotes;
+          if (hasNotes) {
+            await sleep(800);
+            translatedTierNotes = await translateStringsToGerman(
+              tierNotes,
+              `${toolData.name} (tier notes)`
+            );
+          }
+
+          for (let i = 0; i < tiers.length; i++) {
+            await pool.query(
+              'UPDATE subscription_tiers SET tier_name_de = $1, notes_de = $2 WHERE id = $3',
+              [translatedTierNames[i] || tiers[i].tier_name, translatedTierNotes[i] || tiers[i].notes, tiers[i].id]
+            );
+          }
+        }
+
+        console.log(`[API] ✅ German translation complete for ${toolData.name}`);
+      } catch (translationError) {
+        console.error(`[API] ⚠️ Translation failed for ${toolData.name}:`, translationError.message);
+        // Continue even if translation fails - we still have English version
+      }
 
       // Get complete tool with tiers for response
       const completeToolResult = await pool.query(
