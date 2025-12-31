@@ -105,7 +105,7 @@ const BleedCalculator = () => {
           <div className="text-sm text-gray-500 mb-1 font-sans">{t('bleed.totalRent', selectedTool.name)}</div>
           {isEnterpriseTier(selectedTier) ? (
             <div className="text-5xl font-extrabold text-brand-error font-heading overflow-hidden whitespace-nowrap">
-              {Array(100).fill('$').join('')}
+              $
             </div>
           ) : (
             <div className="text-5xl font-extrabold text-brand-error font-heading">
