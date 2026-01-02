@@ -103,7 +103,7 @@ const BleedCalculator = () => {
 
        <div className="py-6 border-t border-b border-red-200 my-6 bg-white rounded-lg">
           <div className="text-sm text-gray-500 mb-1 font-sans">{t('bleed.totalRent', selectedTool.name)}</div>
-          {isEnterpriseTier(selectedTier) ? (
+          {isEnterpriseTier(selectedTier) && !customPricePerUser ? (
             <div className="text-5xl font-extrabold text-brand-error font-heading overflow-hidden whitespace-nowrap">
               $
             </div>
@@ -112,7 +112,7 @@ const BleedCalculator = () => {
               ${calculateBleed().toLocaleString()}
             </div>
           )}
-          {isEnterpriseTier(selectedTier) ? (
+          {isEnterpriseTier(selectedTier) && !customPricePerUser ? (
             <div className="text-xs text-red-400 mt-2 font-medium font-sans">{t('bleed.tooMuch')}</div>
           ) : isFreeOrFreemium && calculateBleed() === 0 ? (
             <div className="text-xs text-amber-600 mt-2 font-medium font-sans">
